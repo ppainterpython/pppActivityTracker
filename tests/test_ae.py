@@ -1,7 +1,7 @@
 import datetime
 import pytest
 import json
-from activity_tracking.model.ae import ActivityEntry
+from model.ae import ActivityEntry
 
 def test_activity_entry_constructor():
     start_time = datetime.datetime(2025, 1, 20, 13)
