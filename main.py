@@ -1,12 +1,12 @@
 #-----------------------------------------------------------------------------+
 import datetime
 import tkinter as tk
-from activity_tracking.te import TimeEntry
+from activity_tracking.ae import ActivityEntry
 #import tkinter.ttk as ttk
 start2 = datetime.datetime(2025,1,20,13)
 stop2 = datetime.datetime(2025,1,20,14, 5)
 # te1 = TimeEntry()
-te2 = TimeEntry(start2, None, "learning", "Place notes here")
+te2 = ActivityEntry(start2, None, "learning", "Place notes here")
 
 
 root = tk.Tk()

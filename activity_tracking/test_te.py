@@ -1,17 +1,15 @@
 import datetime
 import pytest
 import json
-from te import TimeEntry
+from activity_tracking.ae import ActivityEntry
 
-# filepath: c:\Users\ppain\repos\python\freeCodeCampLearnPythonBeginners\pppTimesTracker\activity_tracking\test_te.py
-
-def test_time_entry_constructor():
+def test_activity_entry_constructor():
     start_time = datetime.datetime(2025, 1, 20, 13)
     stop_time = datetime.datetime(2025, 1, 20, 14, 5)
     activity = "learning"
     notes = "Place notes here"
 
-    te = TimeEntry(start_time, stop_time, activity, notes)
+    te = ActivityEntry(start=start_time, stop=stop_time, activity=activity, notes=notes)
 
     assert te.start == start_time
     assert te.stop >= stop_time
@@ -19,13 +17,13 @@ def test_time_entry_constructor():
     assert te.notes == notes
     assert te.duration == te.stop - te.start
 
-def test_time_entry_constructor_with_string_start():
+def test_activity_entry_constructor_with_string_start():
     start_time = "2025-01-20T13:00:00"
     stop_time = datetime.datetime(2025, 1, 20, 14, 5)
     activity = "learning"
     notes = "Testing ISO string input for start time"
 
-    te = TimeEntry(start_time, stop_time, activity, notes)
+    te = ActivityEntry(start=start_time, stop=stop_time, activity=activity, notes=notes)
 
     assert te.start == datetime.datetime.fromisoformat(start_time), f"Start time is not correct ISO conversion: {start_time} vs {te.start}"
     assert te.stop == stop_time, "Stop time is not correct"
@@ -33,13 +31,13 @@ def test_time_entry_constructor_with_string_start():
     assert te.activity == activity, "Activity string is not correct"
     assert te.notes == notes, "Notes string is not correct"
 
-def test_time_entry_constructor_with_string_stop():
+def test_activity_entry_constructor_with_string_stop():
     start_time = datetime.datetime(2025, 1, 20, 13, 5)
     stop_time = "2025-01-20T14:00:00"
     activity = "learning"
     notes = "Testing ISO string input for stop time"
 
-    te = TimeEntry(start_time, stop_time, activity, notes)
+    te = ActivityEntry(start=start_time, stop=stop_time, activity=activity, notes=notes)
 
     assert te.start == start_time, "Start time is not correct"
     assert te.stop == datetime.datetime.fromisoformat(stop_time), f"Stop time is not correct ISO conversion: {stop_time} vs {te.stop}"
@@ -47,13 +45,13 @@ def test_time_entry_constructor_with_string_stop():
     assert te.notes == notes, "Notes string is not correct"
     assert te.duration == te.stop - te.start, "Duration is not correct"
 
-def test_time_entry_constructor_with_zero_length_string_start():
+def test_activity_entry_constructor_with_zero_length_string_start():
     start_time = ""
     stop_time = datetime.datetime(2025, 1, 20, 14, 5)
     activity = "Testing zero length string for start time"
     notes = "Testing"
 
-    te = TimeEntry(start_time, stop_time, activity, notes)
+    te = ActivityEntry(start=start_time, stop=stop_time, activity=activity, notes=notes)
 
     assert isinstance(te.start, datetime.datetime), "Start time is not correct"
     assert isinstance(te.stop, datetime.datetime), "Stop time is not a datetime object"
@@ -61,13 +59,13 @@ def test_time_entry_constructor_with_zero_length_string_start():
     assert te.notes == notes, "Notes string is not correct"
     assert te.duration == te.stop - te.start, "Duration is not correct"
 
-def test_time_entry_constructor_with_zero_length_string_stop():
+def test_activity_entry_constructor_with_zero_length_string_stop():
     start_time = datetime.datetime(2025, 1, 20, 14, 5)
     stop_time = ""
     activity = "Testing zero length string for stop time"
     notes = "Testing"
 
-    te = TimeEntry(start_time, stop_time, activity, notes)
+    te = ActivityEntry(start=start_time, stop=stop_time, activity=activity, notes=notes)
 
     assert isinstance(te.start, datetime.datetime), "Start time is not a datetime object"
     assert isinstance(te.stop, datetime.datetime), "Stop time is not a datetime object"
@@ -75,7 +73,7 @@ def test_time_entry_constructor_with_zero_length_string_stop():
     assert te.notes == notes, "Notes string is not correct"
     assert te.duration == te.stop - te.start, "Duration is not correct"
 
-def test_time_entry_constructor_with_invalid_iso_string_start():
+def test_activity_entry_constructor_with_invalid_iso_string_start():
     # Test invalid ISO format for start time
     start_time = "invalid-date-format"
     stop_time = datetime.datetime(2025, 1, 20, 14, 5)
@@ -84,17 +82,17 @@ def test_time_entry_constructor_with_invalid_iso_string_start():
     duration = 0.0
 
     with pytest.raises(ValueError):
-        TimeEntry(start_time, stop_time, activity, notes)
+        ActivityEntry(start=start_time, stop=stop_time, activity=activity, notes=notes)
 
     # Test invalid ISO format for stop time
     start_time = datetime.datetime(2025, 1, 20, 14, 5)
     stop_time = "invalid-date-format"
 
     with pytest.raises(ValueError):
-        TimeEntry(start_time, stop_time, activity, notes)
+        ActivityEntry(start=start_time, stop=stop_time, activity=activity, notes=notes)
 
-def test_time_entry_default_constructor():
-    te = TimeEntry()
+def test_activity_entry_default_constructor():
+    te = ActivityEntry()
 
     assert isinstance(te.start, datetime.datetime), "Start time is not a datetime object"
     assert isinstance(te.stop, datetime.datetime), "Stop time is not a datetime object"
@@ -103,44 +101,44 @@ def test_time_entry_default_constructor():
     #assert te.duration == te.default_duration(), "Default duration is not correct"
 
 def test_validate_start():
-    # Assuming validate_start is a static method of TimeEntry class
+    # Assuming validate_start is a static method of ActivityEntry class
     valid_start = "2025-01-20T13:00:00"
     invalid_start = "invalid-date-format"
 
     # Test valid start time
-    assert TimeEntry.validate_start(valid_start) == datetime.datetime.fromisoformat(valid_start), "Valid start time failed validation"
+    assert ActivityEntry.validate_start(valid_start) == datetime.datetime.fromisoformat(valid_start), "Valid start time failed validation"
 
     # Test invalid start time
     with pytest.raises(ValueError):
-        TimeEntry.validate_start(invalid_start)
+        ActivityEntry.validate_start(invalid_start)
 
     # Test invalid start time
     with pytest.raises(ValueError):
-        TimeEntry.validate_start((1,2))
+        ActivityEntry.validate_start((1,2))
 
 def test_validate_stop():
-    # Assuming validate_stop is a static method of TimeEntry class
+    # Assuming validate_stop is a static method of ActivityEntry class
     valid_start = datetime.datetime.fromisoformat("2025-01-20T14:00:00")
     valid_stop = "2025-01-20T14:30:00"
     invalid_stop = "invalid-date-format"
 
     # Test valid stop time
-    assert TimeEntry.validate_stop(valid_start, valid_stop) == datetime.datetime.fromisoformat(valid_stop), "Valid stop time failed validation"
+    assert ActivityEntry.validate_stop(valid_start, valid_stop) == datetime.datetime.fromisoformat(valid_stop), "Valid stop time failed validation"
 
     # Test invalid stop time
     with pytest.raises(ValueError):
-        TimeEntry.validate_stop(valid_start, invalid_stop)
+        ActivityEntry.validate_stop(valid_start, invalid_stop)
 
     # Test invalid stop time
     with pytest.raises(ValueError):
-        TimeEntry.validate_stop(valid_start, (1,2))
+        ActivityEntry.validate_stop(valid_start, (1,2))
 
-def test_time_entry_constructor_with_none_start():
+def test_activity_entry_constructor_with_none_start():
     stop_time = datetime.datetime(2025, 1, 20, 14, 5)
     activity = "Testing None start time"
     notes = "Testing"
 
-    te = TimeEntry(None, stop_time, activity, notes)
+    te = ActivityEntry(start=None, stop=stop_time, activity=activity, notes=notes)
 
     assert isinstance(te.start, datetime.datetime), "Start time is not a datetime object"
     assert te.stop == stop_time, "Stop time is not correct"
@@ -148,12 +146,12 @@ def test_time_entry_constructor_with_none_start():
     assert te.notes == notes, "Notes string is not correct"
     assert te.duration == te.stop - te.start, "Duration is not correct"
 
-def test_time_entry_constructor_with_none_stop():
+def test_activity_entry_constructor_with_none_stop():
     start_time = datetime.datetime(2025, 1, 20, 14, 5)
     activity = "Testing None stop time"
     notes = "Testing"
 
-    te = TimeEntry(start_time, None, activity, notes)
+    te = ActivityEntry(start=start_time, stop=None, activity=activity, notes=notes)
 
     assert te.start == start_time, "Start time is not correct"
     assert isinstance(te.stop, datetime.datetime), "Stop time is not a datetime object"
@@ -162,13 +160,13 @@ def test_time_entry_constructor_with_none_stop():
     assert te.notes == notes, "Notes string is not correct"
     assert te.duration == te.stop - te.start, "Duration is not correct"
 
-def test_time_entry_constructor_with_negative_duration():
+def test_activity_entry_constructor_with_negative_duration():
     start_time = datetime.datetime(2025, 1, 20, 14, 5)
     stop_time = datetime.datetime(2025, 1, 20, 13, 5)
     activity = "Testing negative duration"
     notes = "Testing"
 
-    te = TimeEntry(start_time, stop_time, activity, notes)
+    te = ActivityEntry(start=start_time, stop=stop_time, activity=activity, notes=notes)
 
     assert te.start == start_time, "Start time is not correct"
     assert te.stop == stop_time, "Stop time is not correct"
@@ -177,8 +175,8 @@ def test_time_entry_constructor_with_negative_duration():
     assert te.duration == te.stop - te.start, "Duration is not correct"
     assert te.duration.total_seconds() < 0, "Duration is not negative"
 
-def test_time_entry_constructor_with_default_values():
-    te = TimeEntry()
+def test_activity_entry_constructor_with_default_values():
+    te = ActivityEntry()
 
     assert isinstance(te.start, datetime.datetime), "Start time is not a datetime object"
     assert isinstance(te.stop, datetime.datetime), "Stop time is not a datetime object"
@@ -186,10 +184,10 @@ def test_time_entry_constructor_with_default_values():
     assert te.notes == '', "Default notes are not empty"
     #assert te.duration == te.default_duration(), "Default duration is not correct"
 
-def test_time_entry_constructor_with_partial_parameters():
+def test_activity_entry_constructor_with_partial_parameters():
     start_time = datetime.datetime(2025, 1, 20, 13)
     activity = "Partial parameters"
-    te = TimeEntry(start=start_time, activity=activity)
+    te = ActivityEntry(start=start_time, activity=activity)
 
     assert te.start == start_time, "Start time is not correct"
     assert isinstance(te.stop, datetime.datetime), "Stop time is not a datetime object"
@@ -197,10 +195,10 @@ def test_time_entry_constructor_with_partial_parameters():
     assert te.notes == '', "Notes string is not empty"
     assert te.duration == te.stop - te.start, "Duration is not correct"
 
-def test_time_entry_str():
+def test_activity_entry_str():
     start_time = datetime.datetime(2025, 1, 20, 13)
     activity = "Partial parameters"
-    te = TimeEntry(start=start_time, activity=activity)
+    te = ActivityEntry(start=start_time, activity=activity)
 
-    assert str(te) == activity, "String representation of TimeEntry is not correct"
+    assert str(te) == activity, "String representation of ActivityEntry is not correct"
 
