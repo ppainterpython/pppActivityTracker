@@ -1,7 +1,7 @@
 #-----------------------------------------------------------------------------+
 import datetime
 import tkinter as tk
-from activity_tracking.ae import ActivityEntry
+from model.ae import ActivityEntry
 #import tkinter.ttk as ttk
 start2 = datetime.datetime(2025,1,20,13)
 stop2 = datetime.datetime(2025,1,20,14, 5)

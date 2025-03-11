@@ -30,7 +30,7 @@ class ActivityEntry:
     and calculate the duration as a datetime.timedelta object.
     If the start or stop time are a string, it is be converted to a 
     datetime object assuming a valid ISO format datetime.
-    Empty strings for start or stop are set to the current datetime.
+    Empty strings or 'None' values for start or stop are set to the current datetime.
     If no stop time is provided, it defaults to the start time plus 30 minutes.
     The duration is calculated as the difference between the stop and start 
     times in hours. A negative value indicates the stop time is before the start
