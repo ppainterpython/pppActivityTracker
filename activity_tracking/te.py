@@ -1,7 +1,11 @@
 #-----------------------------------------------------------------------------+
 # te.py
 import datetime
+from dataclasses import dataclass, field
 
+TE_DEFAULT_DURATION = 30
+
+@dataclass()
 class TimeEntry:
     """
     A class to represent one entry of time spent doing some work.
@@ -22,7 +26,7 @@ class TimeEntry:
 
     Data Validation at Construction
     ------------------------------
-    The constructor will validate the input types for start and stop times
+    Validate the input types for start and stop times
     and calculate the duration as a datetime.timedelta object.
     If the start or stop time are a string, it is be converted to a 
     datetime object assuming a valid ISO format datetime.
@@ -32,10 +36,13 @@ class TimeEntry:
     times in hours. A negative value indicates the stop time is before the start
     time. 
     """
-
-    duration: float = 0.0
-
-    def __init__(self, start=None, stop=None, activity='', notes=''):
+    start: str | datetime.datetime = field(default=datetime.datetime.now())
+    stop: str | datetime.datetime = field(default=datetime.datetime.now())
+    activity: str = field(default='')
+    notes: str = field(default='')
+    duration: float = field(default=0.0, init=False)
+    # post init function to validate start, stop and calculate duration
+    def __post_init__(self):
         """Full parameters Constructor for class TimeEntry
         
         Parameters
@@ -47,10 +54,8 @@ class TimeEntry:
         activity : str
         notes : str
         """
-        self.start = self.validate_start(start)
-        self.stop = self.validate_stop(self.start, stop)
-        self.activity = activity
-        self.notes = notes
+        self.start = self.validate_start(self.start)
+        self.stop = self.validate_stop(self.start, self.stop)
         self.duration = self.stop - self.start
 
     def __str__(self):
@@ -83,13 +88,13 @@ class TimeEntry:
             elif isinstance(dt, str):
                 if len(dt) == 0:
                     # default stop to start + 30 minutes
-                    return st + datetime.timedelta(minutes=30)
+                    return st + TimeEntry.default_duration()
                 return datetime.datetime.fromisoformat(dt)
         raise ValueError(f"Invalid stop datetime value: {dt}")
     
     @staticmethod
     def default_duration():
-        """Return default duration of 30 minutes."""
-        return datetime.timedelta(minutes=30)
+        """Return default duration of TE_DEFAULT_DURATION minutes."""
+        return datetime.timedelta(minutes=TE_DEFAULT_DURATION)
 
         
