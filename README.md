@@ -11,7 +11,10 @@ is computed. Weekly summaries of the activities can be shown.
 
 The data is stored in a local json file.
 
-An approximation of the MVVM pattern is employed.
+An approximation of the MVVM pattern is employed. For starters, the viewmodel
+binds to the model using only a filename, or a simple json file binding. The
+main program defines an Application class which creates the view and the
+viewmodel supporting commands and properties.
 
 ## Project Structure
 
@@ -20,7 +23,11 @@ pppActivityTracker (project root)
 │
 ├── model/
 │   ├── ae.py (ActivityEntry dataclass)
-│   └── tbd/
+│   └── atm.py (ActivityTracker Model)
+│
+├── viewmodel/
+│   ├── ae.py (ActivityEntry dataclass)
+│   └── atvm.py (Activity Tracker viewmodel)
 │
 ├── tests/
 │   ├── test_ae.py (unit test for ActivityEntry dataclass)

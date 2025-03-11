@@ -1,21 +1,19 @@
 #-----------------------------------------------------------------------------+
-import datetime
 import tkinter as tk
-from model.ae import ActivityEntry
+class Application(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("PP Python Activity Tracker")
+        self.geometry("800x500")
+        self.create_widgets()
 
-start2 = datetime.datetime(2025,1,20,13)
-stop2 = datetime.datetime(2025,1,20,14, 5)
-# te1 = TimeEntry()
-te2 = ActivityEntry(start2, None, "learning", "Place notes here")
+    def create_widgets(self):
+        frm = tk.Frame(self)
+        frm.grid()
+        tk.Label(frm, text="Hello World!").grid(column=0, row=0)
+        tk.Button(frm, text="Quit", command=self.destroy).grid(column=1, row=0)
 
-
-root = tk.Tk()
-root.geometry("800x500")
-root.title("PP Python Time Tracker")
-# label = tk.Label(root,text="Hello World!", font=('Ariel', 18))
-# label.pack()
-frm = tk.Frame(root)
-frm.grid()
-tk.Label(frm, text="Hello World!").grid(column=0, row=0)
-tk.Button(frm, text="Quit", command=root.destroy).grid(column=1, row=0)
-root.mainloop()
+if __name__ == "__main__":
+    app = Application()
+    app.mainloop()
+#-----------------------------------------------------------------------------+
