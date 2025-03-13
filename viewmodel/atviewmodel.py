@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------+
-from pppActivityTracker.viewmodel.interfaces import IATViewModel
+from viewmodel.interfaces.iatviewmodel import IATViewModel
 from view import atview
 
 
