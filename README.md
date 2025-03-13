@@ -27,7 +27,8 @@ pppActivityTracker (project root)
 │   └── atviewmodel.py (Activity Tracker viewmodel)
 │
 ├── view/
-│   └── atview.py (Activity Tracker view)
+│   ├── atview.py (Activity Tracker view)
+|   └── interfaces/
 │
 ├── tests/
 │   ├── test_ae.py (unit test for ActivityEntry dataclass)
