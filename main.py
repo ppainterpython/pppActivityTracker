@@ -1,19 +1,15 @@
 #-----------------------------------------------------------------------------+
 import tkinter as tk
-class Application(tk.Tk):
-    def __init__(self):
-        super().__init__()
-        self.title("PP Python Activity Tracker")
-        self.geometry("800x500")
-        self.create_widgets()
-
-    def create_widgets(self):
-        frm = tk.Frame(self)
-        frm.grid()
-        tk.Label(frm, text="Hello World!").grid(column=0, row=0)
-        tk.Button(frm, text="Quit", command=self.destroy).grid(column=1, row=0)
+from view import atview 
+class Application():
+    """ Activity Tracker Main Application"""
+    atv: tk.Tk = None
+    def __init__(self,root: tk.Tk):
+        self.atv = atview.ATView(root)
 
 if __name__ == "__main__":
-    app = Application()
-    app.mainloop()
+    root = tk.Tk()
+    app = Application(root)
+    root.mainloop()
+
 #-----------------------------------------------------------------------------+
