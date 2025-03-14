@@ -1,17 +1,24 @@
 #-----------------------------------------------------------------------------+
 import tkinter as tk
 from tkinter import EventType
-class ATViewFrame(tk.Frame):
+from tkinter import ttk
+from ttkbootstrap.constants import *
+import ttkbootstrap as tb
+from view.constants import AT_FAINT_GRAY
+class ATViewFrame(tb.Frame):
     """ Activity Tracker View class.
         The ATView class is a subclass of the tkinter.Tk class and implements 
         the entire user interface for the Activity Tracker application.
     """
-    root : tk.Tk = None # root window
+    root : tb.Window = None # root window
     filepath_entry: tk.Entry = None
     filepath_value: tk.StringVar = None
     def __init__(self, root): # self is tk.Tk root window
         # init super class (tk.Frame)
         super().__init__()
+        style = ttk.Style()
+        style.configure('TFrame', background=AT_FAINT_GRAY)
+
         # init properties
         self.root = root # reference to the root window
         self.filepath_value = tk.StringVar()
