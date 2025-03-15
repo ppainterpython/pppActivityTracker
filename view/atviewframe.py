@@ -10,12 +10,18 @@ class ATViewFrame(tb.Frame):
         The ATView class is a subclass of the tkinter.Tk class and implements 
         the entire user interface for the Activity Tracker application.
     """
+    # DataContext properties
+    filepath_value: tk.StringVar # file path for the activity tracker data file
+
+    # UI widgets
     root : tb.Window = None # root window
     filepath_entry: tk.Entry = None
-    filepath_value: tk.StringVar = None
+    quit_button: tk.Button = None
+
     def __init__(self, root): # self is tk.Tk root window
         # init super class (tk.Frame)
         super().__init__()
+        self.grid(pady=10, padx=10, sticky="nsew") # grid layout for the frame
         style = ttk.Style()
         style.configure('TFrame', background=AT_FAINT_GRAY)
 
@@ -24,15 +30,19 @@ class ATViewFrame(tb.Frame):
         self.filepath_value = tk.StringVar()
         # init widgets in root window
         self.create_atviewframe_widgets() # setup atviewframe widgets
+        self.layout_atviewframe_widgets() # layout atviewframe widgets
         self.bind_atviewframe_widgets()   # bind atviewframe widgets to events
 
     def create_atviewframe_widgets(self):
-        self.grid(pady=10, padx=10, sticky="nsew") # grid layout for the frame
-        self.filepath_label = tk.Label(self, text="File Path:").grid(column=0, row=0, padx=5)
+        self.filepath_label = tk.Label(self, text="File Path:")
         self.filepath_value.set("") # default value
         self.filepath_entry = tk.Entry(self,textvariable=self.filepath_value)
-        self.filepath_entry.grid(column=1, row=0, padx=2)
-        tk.Button(self, text="Quit", command=self.root.destroy).grid(column=4, row=0, padx=5)
+        self.quit_button = tk.Button(self, text="Quit", command=self.root.destroy)
+
+    def layout_atviewframe_widgets(self):
+        self.filepath_label.grid(column=0, row=0)
+        self.filepath_entry.grid(column=1, row=0)
+        self.quit_button.grid(column=4, row=0, padx=5, pady=5, sticky="e") # quit button on right side
 
     def bind_atviewframe_widgets(self):
         self.filepath_entry.bind("<Return>", self.on_filepath_changed)
