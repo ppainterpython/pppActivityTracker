@@ -2,6 +2,7 @@
 import datetime
 import pytest
 import json
+from typing import List
 from model.ae import ActivityEntry
 
 def test_activity_entry_constructor():
