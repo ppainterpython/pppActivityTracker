@@ -5,11 +5,11 @@ import json
 from typing import List
 from model.ae import ActivityEntry
 from model.atmodelconstants import TE_DEFAULT_DURATION
-from model.atmodel import ATModel
+from model.file_atmodel import FileATModel
 
 def test_atmodel_constructor():
     an = "painterActivity"
-    am = ATModel(an)
+    am = FileATModel(an)
     assert am.activityname == an
 
 def test_atmodel_add_activity():
@@ -41,7 +41,7 @@ def test_atmodel_add_activity():
     assert ae3.duration == dur, "ae3 duration is incorrect"
     assert str(ae3) == activity3, "String representation of ActivityEntry ae3 is not correct"
 
-    atm = ATModel(an)
+    atm = FileATModel(an)
     assert atm != None, "creating ATModel instance faile"
 
     atm.add_activity(ae1)
