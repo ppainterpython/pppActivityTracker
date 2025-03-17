@@ -1,9 +1,10 @@
 #-----------------------------------------------------------------------------+
 # ae.py
-import datetime
+import datetime, json
+import at_utilities.at_utils as atu
 from dataclasses import dataclass, field
 
-TE_DEFAULT_DURATION = 30
+TE_DEFAULT_DURATION = 30 # minutes
 
 @dataclass(kw_only=True)
 class ActivityEntry:
@@ -12,17 +13,17 @@ class ActivityEntry:
 
     Attributes
     ----------
-    start : datetime
-        date and time an activity starts. 
-    stop : datetime
-        date and time an activity stops
+    start : str
+        date and time an activity starts as ISO string format. 
+    stop : str
+        date and time an activity stops as ISO string format
     activity : str
         A unique activity identifier string, perhaps as a dictionary entry
         defining a list of activities that can be aggregated and summarized
     notes : str
         Additional descriptive text describing the particulars of this activity
     duration : float
-        Calculated difference between stop and start times in hours
+        Calculated float difference between stop and start times in hours
 
     Data Validation at Construction
     ------------------------------
@@ -36,65 +37,114 @@ class ActivityEntry:
     times in hours. A negative value indicates the stop time is before the start
     time. 
     """
-    start: None | str | datetime.datetime = field(default=datetime.datetime.now())
-    stop: None | str | datetime.datetime = field(default=datetime.datetime.now())
+    start: str = field(default=datetime.datetime.now().isoformat())
+    stop: str = field(default=datetime.datetime.now().isoformat())
     activity: str = field(default='')
     notes: str = field(default='')
-    duration: float = field(default=0.0)
+    duration: float = field(default=0.0) # duration in hours as float
     # post init function to validate start, stop and calculate duration
     def __post_init__(self):
         """Full parameters Constructor for class ActivityEntry
         
         Parameters
         ----------
-        start : datetime
-            date and time an activity starts. If none, current time is used
+        start : str
+            ISO format date and time an activity starts. If none, current time is used
         stop : datetime
-            date and time an activity stops. If none, current time is used
+            ISO format date and time an activity stops. If none, current time is used
         activity : str
         notes : str
         """
         self.start = self.validate_start(self.start)
         self.stop = self.validate_stop(self.start, self.stop)
-        self.duration = self.stop - self.start
+        self.duration = ActivityEntry.calculate_duration(self.start, self.stop)
 
     def __str__(self):
         return f"{self.activity}"
 
     # Some static helper methods for input validation
     @staticmethod
-    def validate_start(dt):
+    def validate_start(dt: str) -> str:
         """Validate start time for ActivityEntry constructor."""
+        # Returns a valid ISO format date string for the start time
+        # If None, default to time now
+        # If empty string, default to time now
+        # If valid ISO string, return it
+        # If invalid string, default to time now
         if dt is None:
             # default start to now
-            return datetime.datetime.now()
-        if isinstance(dt, datetime.datetime):
-            return dt
-        elif isinstance(dt, str):
+            return datetime.datetime.now().isoformat()
+        if isinstance(dt, str):
             if len(dt) == 0:
-                return datetime.datetime.now()
-            return datetime.datetime.fromisoformat(dt)
+                return datetime.datetime.now().isoformat()
+            elif ActivityEntry.validate_iso_date_string(dt):
+                return dt
+            else:
+                return datetime.datetime.now().isoformat()
         raise ValueError(f"Invalid start datetime value: {dt}")
     
     @staticmethod
-    def validate_stop(st: datetime, dt):
+    def validate_stop(strt: str, stp: str) -> str:
         """Validate stop time for ActivityEntry constructor."""
-        if isinstance(st, datetime.datetime): # needs valid start time st
-            if isinstance(dt, datetime.datetime):
-                return dt
-            elif dt is None:
+        # Returns a valid ISO format date string for the stop time
+        # Uses strt to determine the default stop time if stp is None or invalid
+        # If None, default to time now
+        # If empty string, default to time now
+        # If valid ISO string, return it
+        # If invalid string, default to time now
+        s = ActivityEntry.validate_start(strt) # exception if invalid start
+        strtdt : datetime = atu.iso_date(s) # convert to datetime
+        stpdefault : datetime = strtdt + ActivityEntry.default_duration() # default stop time
+        if stp is None: return stpdefault.isoformat() # default stop to start + default duration
+        if isinstance(stp, str):
+            if len(stp) == 0: return stpdefault.isoformat()
+            if ActivityEntry.validate_iso_date_string(stp):
+                return datetime.datetime.fromisoformat(stp).isoformat()
+            else:
                 # default stop to start + 30 minutes
-                return st + ActivityEntry.default_duration()
-            elif isinstance(dt, str):
-                if len(dt) == 0:
-                    # default stop to start + 30 minutes
-                    return st + ActivityEntry.default_duration()
-                return datetime.datetime.fromisoformat(dt)
+                return stpdefault.isoformat()
         raise ValueError(f"Invalid stop datetime value: {dt}")
     
     @staticmethod
-    def default_duration():
-        """Return default duration of TE_DEFAULT_DURATION minutes."""
+    def validate_iso_date_string(dt_str: str) -> bool:
+        """Validate ISO format date string."""
+        try:
+            datetime.datetime.fromisoformat(dt_str)
+            return True
+        except ValueError:
+            return False
+    
+    @staticmethod
+    def calculate_duration(start: str, stop: str) -> float:
+        """Calculate duration in hours from start and stop times."""
+        # Convert ISO strings to datetime objects and calculate the duration
+        # Return the duration in hours as a float
+        # Presumes start and stop are valid ISO strings, returns 0.0 if not
+        # Can return negative value if stop is before start
+        if start is None or stop is None:
+            return 0.0
+        if not isinstance(start, str) or not isinstance(stop, str):
+            return 0.0
+        try:
+            if not (ActivityEntry.validate_iso_date_string(start) and 
+                    ActivityEntry.validate_iso_date_string(stop)):
+                return 0.0
+            start_dt = atu.iso_date(start)
+            stop_dt = atu.iso_date(stop)
+            td = stop_dt - start_dt
+            seconds = td.total_seconds()
+            return seconds / (60.0 * 60.0)
+        except Exception as e:
+            print(f"Error calculating duration: {e}")
+            return 0.0
+
+    @staticmethod
+    def default_duration() -> datetime.timedelta:
+        """Return default duration of TE_DEFAULT_DURATION minutes as datetime.timedelta object."""
         return datetime.timedelta(minutes=TE_DEFAULT_DURATION)
-
-
+    
+    @staticmethod
+    def default_duration_hours() -> float:
+        """Return default duration of TE_DEFAULT_DURATION in hours (float)."""
+        td = datetime.timedelta(minutes=TE_DEFAULT_DURATION)
+        return float(td.total_seconds() / (60.0 * 60.0)  )

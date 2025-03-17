@@ -1,8 +1,10 @@
 #-----------------------------------------------------------------------------+
 import datetime
+import os
+import getpass
+from typing import List
 import pytest
 import json
-from typing import List
 from model.ae import ActivityEntry
 from model.atmodelconstants import TE_DEFAULT_DURATION
 from model.file_atmodel import FileATModel
@@ -10,7 +12,14 @@ from model.file_atmodel import FileATModel
 def test_atmodel_constructor():
     an = "painterActivity"
     am = FileATModel(an)
+    un = getpass.getuser()
     assert am.activityname == an
+    assert am.activities == [], "activities should be empty list"
+    assert isinstance(am.created_date, datetime.datetime), "created_date should be a datetime object"
+    assert isinstance(am.last_modified_date, datetime.datetime), "last_modified_date should be a datetime object"
+    assert am.modified_by == getpass.getuser(), "modified_by should be the current user"
+    assert am.__str__() == f"ActivityEntry(activityname='{an}')", "String representation of FileATModel is incorrect"
+    print(f"ActivityEntry.__str__() = {am}")
 
 def test_atmodel_add_activity():
     an = "painterActivity"
@@ -50,3 +59,6 @@ def test_atmodel_add_activity():
     assert len(atm.activities) == 2, "add_activity failed to add ae2 object to activites"
     atm.add_activity(ae3)
     assert len(atm.activities) == 3, "add_activity failed to add ae3 object to activites"
+
+    atm.save_atmodel("test.json", "test.json")
+
