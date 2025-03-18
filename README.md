@@ -134,6 +134,12 @@ flowchart LR
 |`Application`|`main.py`| Class for the singleton application object.|
 |``|``||
 
+## Design Decisions
+
+### Dates as Strings
+
+All timestamps are kept as string values using the ISO format. To lessen the dependencies on Python datetime module, the manipulation of datatime objects is isolated into the at_utilities module.
+
 ## Dependencies
 
 Periodically capture the dependent python packages with:

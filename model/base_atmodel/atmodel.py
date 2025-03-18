@@ -17,10 +17,10 @@ class ATModel(ABC):
     activities : List[ActivityEntry]
         A List of ActivityEntry instances, one for each activity sorted in
         sequential order by start time.
-    created_date : datetime
-        The timestamp the activity model was created
-    last_modified_date : datetime
-        The timestamp of the last modification
+    created_date : str
+        The ISO format timestamp the activity model was created
+    last_modified_date : str
+        The ISO format timestamp of the last modification
     modified_by : str
         The username to last modify the content
 
@@ -53,27 +53,27 @@ class ATModel(ABC):
 
     @property
     @abstractmethod
-    def created_date(self) -> datetime:
+    def created_date(self) -> str:
         raise NotImplementedError
     
     @created_date.setter
     @abstractmethod
-    def created_date(self, value: datetime) -> None:
+    def created_date(self, value: str) -> None:
         raise NotImplementedError
 
     @created_date.setter
     @abstractmethod
-    def created_date(self, value: datetime) -> datetime:
+    def created_date(self, value: str) -> str:
         raise NotImplementedError
 
     @property
     @abstractmethod
-    def last_modified_date(self) -> datetime:
+    def last_modified_date(self) -> str:
         raise NotImplementedError
     
     @last_modified_date.setter
     @abstractmethod
-    def last_modified_date(self, value: datetime) -> None:
+    def last_modified_date(self, value: str) -> None:
         raise NotImplementedError
 
     @property

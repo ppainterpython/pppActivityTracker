@@ -1,14 +1,13 @@
 #-----------------------------------------------------------------------------+
 # file_atmodel.py
-import datetime
-import getpass
-import json
-import os
+import getpass, json
 from dataclasses import dataclass, field, asdict
 from abc import ABC, abstractmethod
 from typing import List
+import at_utilities.at_utils as atu
 from model.ae import ActivityEntry
 from model.base_atmodel.atmodel import ATModel
+from model.atmodelconstants import TE_DEFAULT_DURATION, TE_DEFAULT_DURATION_SECONDS
 
 @dataclass(kw_only=True)
 class FileATModel(ATModel):
@@ -26,10 +25,10 @@ class FileATModel(ATModel):
     activities : List[ActivityEntry]
         A List of ActivityEntry instances, one for each activity sorted in
         sequential order by start time.
-    created_date : datetime
-        The timestamp the activity model was created
-    last_modified_date : datetime
-        The timestamp of the last modification
+    created_date : str
+        ISO format timestamp string for the activity model was created
+    last_modified_date : str
+        ISO format timestamp string for the last modification
     modified_by : str
         The username to last modify the content
 
@@ -46,14 +45,15 @@ class FileATModel(ATModel):
     ---------------------------------------------------
 
     """
+    #region FileATModel Class
     #-------------------------------------------------------------------------+
     # Private Property attributes
     #-------------------------------------------------------------------------+
     # For ATModel abstract base class property values
     __activityname: str = ""
     __activities: List[ActivityEntry]
-    __created_date: datetime = None
-    __last_modified_date: datetime = None
+    __created_date: str = None
+    __last_modified_date: str = None
     __modified_by: str = ""
     # For FileATModel sub-class property values
     __filename: str = "activity-tracking.json"  # default filename for saving
@@ -65,15 +65,16 @@ class FileATModel(ATModel):
         """Constructor for class FileATModel"""
         self.__activityname = an
         self.__activities = []
-        self.__created_date = datetime.datetime.now()
-        self.__last_modified_date = self.created_date
+        self.__created_date = FileATModel.default_creation_date()
+        self.__last_modified_date = self.__created_date
         self.__modified_by = getpass.getuser()        
 
     def __str__(self):
         return f"ActivityEntry(activityname='{self.__activityname}')"
-    
+    #endregion FileATModel Class  
+
     #-------------------------------------------------------------------------+
-    # ATModel Properties (from ATModel abstract base class)
+    #region ATModel Properties (from ATModel abstract base class)
     #-------------------------------------------------------------------------+
     @property
     def activityname(self) -> str:
@@ -92,23 +93,23 @@ class FileATModel(ATModel):
         self.__activities = value
 
     @property
-    def created_date(self) -> datetime:
+    def created_date(self) -> str:
         return self.__created_date
     
     @created_date.setter
-    def created_date(self, value: datetime) -> None:
+    def created_date(self, value: str) -> None:
         self.__created_date = value
 
     @created_date.setter
-    def created_date(self, value: datetime) -> datetime:
+    def created_date(self, value: str) -> str:
         return self.__created_date
 
     @property
-    def last_modified_date(self) -> datetime:
+    def last_modified_date(self) -> str:
         return self.__last_modified_date
     
     @last_modified_date.setter
-    def last_modified_date(self, value: datetime) -> None:
+    def last_modified_date(self, value: str) -> None:
         self.__last_modified_date = value
 
     @property
@@ -118,9 +119,10 @@ class FileATModel(ATModel):
     @modified_by.setter
     def modified_by(self, value: str) -> None:
         self.__modified_by = value
+    #endregion
 
     #-------------------------------------------------------------------------+
-    # FileATModel Properties (specific to FileATModel class)
+    #region FileATModel Properties (specific to FileATModel class)
     #-------------------------------------------------------------------------+
     @property
     def filename(self) -> str:
@@ -137,29 +139,46 @@ class FileATModel(ATModel):
     @folderpath.setter
     def folderpath(self, value: str) -> None:
         self.__folderpath = value
+    #endregion
 
     #-------------------------------------------------------------------------+
-    # ATModel Methods (from ATModel abstract base class)
+    #region ATModel Methods (from ATModel abstract base class)
     #-------------------------------------------------------------------------+
     def add_activity(self, ae: ActivityEntry) -> ActivityEntry:
         """ FileATModel.add_activity() - concrete impl for ABC method, 
             add an ActivityEntry to the activities list"""
         self.__activities.append(ae)
         self.__modified_by = getpass.getuser()
-        self.__last_modified_date = datetime.datetime.now()
+        self.__last_modified_date = FileATModel.current_timestamp()
         return ae
+    #endregion
 
     #-------------------------------------------------------------------------+
-    # FileATModel Methods (specific to FileATModel class)
+    #region FileATModel Methods (specific to FileATModel class)
     #-------------------------------------------------------------------------+
-    def file_atmodel_converter(o):
-        """ for converting datetime objects to ISO format for JSON serialization """
-        if isinstance(o, datetime.datetime):
-            return o.isoformat()
-        raise TypeError(f"Type {type(o)} not serializable")
-    
     def save_atmodel(self, fp:str,fn:str) -> None:
         """ Save the current activity model to a .json file """
         with open(fp, 'w') as f:
             data = asdict(self)
             json.dump(data, f, indent=4)
+
+    @staticmethod
+    def default_creation_date() -> str:
+        """ Return the current date and time as a ISO format string """
+        return atu.iso_date_now_string()
+
+    @staticmethod
+    def current_timestamp() -> str:
+        """ Return the current date and time as a ISO format string """
+        return atu.iso_date_now_string()
+    
+    @staticmethod
+    def default_duration(unit : str = "minutes") -> int:
+        """ Return the default duration for an activity in minutes or seconds """
+        if unit == "minutes":
+            return TE_DEFAULT_DURATION
+        elif unit == "seconds":
+            return TE_DEFAULT_DURATION_SECONDS
+        else: return 0
+    #endregion
+

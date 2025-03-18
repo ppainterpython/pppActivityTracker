@@ -57,6 +57,30 @@ def test_iso_date_now_string():
     assert datetime.datetime.fromisoformat(atu.iso_date_now_string()) >= now, \
         "iso_date_now_string should return current datetime in ISO format"
     
+def test_iso_date_approx():
+    """Test the iso_date_approx function."""
+    dt1 = "2023-10-01T12:00:00"
+    dt2 = "2023-10-01T12:00:05"  # 5 seconds apart
+    assert atu.iso_date_approx(dt1, dt2, tolerance=10), "Dates should be approximately equal within 10 seconds"
 
+    dt1 = atu.iso_date_now_string()  # Current time
+    dt2 = atu.iso_date_now_string()  # Current time
+    assert atu.iso_date_approx(dt1, dt2, tolerance=1), "Dates should be approximately equal within 1 second"
+
+    # Test with None values
+    with pytest.raises(ValueError):
+        atu.iso_date_approx(None, dt2)
+    with pytest.raises(ValueError):
+        atu.iso_date_approx(dt1, None)
+
+    # Test with invalid tolerance
+    with pytest.raises(ValueError):
+        atu.iso_date_approx(dt1, dt2, tolerance="invalid")
+
+    # Test with invalid date strings
+    with pytest.raises(ValueError):
+        atu.iso_date_approx("invalid-date-string", dt2)
+    with pytest.raises(ValueError):
+        atu.iso_date_approx(dt1, "invalid-date-string")
 
 

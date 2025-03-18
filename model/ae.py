@@ -37,8 +37,8 @@ class ActivityEntry:
     times in hours. A negative value indicates the stop time is before the start
     time. 
     """
-    start: str = field(default=datetime.datetime.now().isoformat())
-    stop: str = field(default=datetime.datetime.now().isoformat())
+    start: str = field(default=None)
+    stop: str = field(default=None)
     activity: str = field(default='')
     notes: str = field(default='')
     duration: float = field(default=0.0) # duration in hours as float
@@ -64,18 +64,20 @@ class ActivityEntry:
 
     # Some static helper methods for input validation
     @staticmethod
-    def validate_start(dt: str) -> str:
+    def validate_start(strt: str) -> str:
         """Validate start time for ActivityEntry constructor."""
         # Returns a valid ISO format date string for the start time
         # If dt is not type str, raise TypeError
         # If dt is None or empty string, default to time now
-        # If dt is valid ISO string, return it
-        # If invalid string, raise ValueError
-        if not isinstance(dt, str):
-            raise TypeError(f"Input Type: str required, but Type: {type(dt).__name__} was given.")
-        if dt is None or len(dt) == 0: return datetime.datetime.now().isoformat()
-        if ActivityEntry.validate_iso_date_string(dt): return dt
-        raise ValueError(f"Invalid start datetime value: {dt}")
+        # If dt is valid ISO string, return it, else raise ValueError
+        if isinstance(strt, (type(None), str)):
+            if (strt is None) or (len(strt) == 0): return ActivityEntry.default_start_time()
+            if not isinstance(strt, str):
+                raise TypeError(f"Input strt: str required, not Type: {type(dt).__name__}")
+            if ActivityEntry.validate_iso_date_string(strt): return strt
+            else:
+                raise ValueError(f"Type:str required for stp, not Type: {type(strt).__name__}")
+        raise TypeError(f"Invalid type for strt input value: Type:'{strt}' = {strt}")
     
     @staticmethod
     def validate_stop(strt: str, stp: str) -> str:
@@ -85,28 +87,35 @@ class ActivityEntry:
         # If stp is not type str, raise TypeError
         # If stp is None or empty string, default to time now
         # If stp is valid ISO string, return it
-        # If invalid string, raise ValueError
-        if not isinstance(stp, str):
-            raise TypeError(f"Input Type: str required, but Type: {type(stp).__name__} was given.")
-        s = ActivityEntry.validate_start(strt) # exception if invalid start
-        strtdt : datetime = atu.iso_date(s) # convert to datetime
-        stpdefault : datetime = strtdt + ActivityEntry.default_duration() # default stop time
-        if stp is None or len(stp) == 0: return stpdefault.isoformat() # default stop to start + default duration
-        if ActivityEntry.validate_iso_date_string(stp):
-            return datetime.datetime.fromisoformat(stp).isoformat()
-        raise ValueError(f"Invalid stop datetime value: {stp}")
+        # If either strt or stp are not type str}None, raise TypeError
+        # If strt or stp are type str but not valid ISO strings, raise ValueError
+        typenames = (None, str)
+        if isinstance(strt, (type(None), str)):
+            s = ActivityEntry.validate_start(strt) # ValueError raised if invalid strt
+        else:
+            raise TypeError(f"Type:str required for strt, not Type: {type(strt).__name__}")
+        if isinstance(stp, (type(None), str)):
+            if (stp is None) or (len(stp) == 0): return ActivityEntry.default_stop_time(s)
+            if ActivityEntry.validate_iso_date_string(stp):
+                return datetime.datetime.fromisoformat(stp).isoformat()
+        else:
+            raise TypeError(f"Type:str required for stp, not Type: {type(stp).__name__}")
     
     @staticmethod
     def validate_iso_date_string(dt_str: str) -> bool:
         """Validate ISO format date string."""
         # Return True if valid
         # otherwise raise ValueError
+        testvalue : bool = False
         try:
             datetime.datetime.fromisoformat(dt_str)
-            return True
-        except ValueError as err:
-            err.add_note(f"Invalid ISO datetime:'{dt_str}' len=({len(dt_str)})")
-            raise
+            testvalue = True
+        except ValueError:
+            testvalue = False
+
+        if testvalue: return True
+
+        raise ValueError(f"Invalid ISO datetime: '{dt_str}'")
     
     @staticmethod
     def calculate_duration(start: str, stop: str) -> float:
@@ -142,3 +151,24 @@ class ActivityEntry:
         """Return default duration of TE_DEFAULT_DURATION in hours (float)."""
         td = datetime.timedelta(minutes=TE_DEFAULT_DURATION)
         return float(td.total_seconds() / (60.0 * 60.0)  )
+
+    @staticmethod
+    def default_start_time() -> str:
+        """Return current time as ISO string."""
+        # Returns the current time as an ISO string
+        return datetime.datetime.now().isoformat()
+    
+    @staticmethod
+    def default_stop_time(start: str = None) -> str:
+        """Return start time plus default duration as ISO string.
+        Input of None or empty string converts start time to current time.
+        """
+        # Uses the start time to calculate the default stop time
+        # Returns the stop time as an ISO string
+        start_time : str = ActivityEntry.validate_start(start)
+        start_dt = atu.iso_date(start_time) # convert to datetime
+        stop_dt = start_dt + ActivityEntry.default_duration()
+        return stop_dt.isoformat()
+
+
+
