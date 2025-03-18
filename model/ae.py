@@ -50,7 +50,7 @@ class ActivityEntry:
         ----------
         start : str
             ISO format date and time an activity starts. If none, current time is used
-        stop : datetime
+        stop : str
             ISO format date and time an activity stops. If none, current time is used
         activity : str
         notes : str
@@ -67,20 +67,14 @@ class ActivityEntry:
     def validate_start(dt: str) -> str:
         """Validate start time for ActivityEntry constructor."""
         # Returns a valid ISO format date string for the start time
-        # If None, default to time now
-        # If empty string, default to time now
-        # If valid ISO string, return it
-        # If invalid string, default to time now
-        if dt is None:
-            # default start to now
-            return datetime.datetime.now().isoformat()
-        if isinstance(dt, str):
-            if len(dt) == 0:
-                return datetime.datetime.now().isoformat()
-            elif ActivityEntry.validate_iso_date_string(dt):
-                return dt
-            else:
-                return datetime.datetime.now().isoformat()
+        # If dt is not type str, raise TypeError
+        # If dt is None or empty string, default to time now
+        # If dt is valid ISO string, return it
+        # If invalid string, raise ValueError
+        if not isinstance(dt, str):
+            raise TypeError(f"Input Type: str required, but Type: {type(dt).__name__} was given.")
+        if dt is None or len(dt) == 0: return datetime.datetime.now().isoformat()
+        if ActivityEntry.validate_iso_date_string(dt): return dt
         raise ValueError(f"Invalid start datetime value: {dt}")
     
     @staticmethod
@@ -88,31 +82,31 @@ class ActivityEntry:
         """Validate stop time for ActivityEntry constructor."""
         # Returns a valid ISO format date string for the stop time
         # Uses strt to determine the default stop time if stp is None or invalid
-        # If None, default to time now
-        # If empty string, default to time now
-        # If valid ISO string, return it
-        # If invalid string, default to time now
+        # If stp is not type str, raise TypeError
+        # If stp is None or empty string, default to time now
+        # If stp is valid ISO string, return it
+        # If invalid string, raise ValueError
+        if not isinstance(stp, str):
+            raise TypeError(f"Input Type: str required, but Type: {type(stp).__name__} was given.")
         s = ActivityEntry.validate_start(strt) # exception if invalid start
         strtdt : datetime = atu.iso_date(s) # convert to datetime
         stpdefault : datetime = strtdt + ActivityEntry.default_duration() # default stop time
-        if stp is None: return stpdefault.isoformat() # default stop to start + default duration
-        if isinstance(stp, str):
-            if len(stp) == 0: return stpdefault.isoformat()
-            if ActivityEntry.validate_iso_date_string(stp):
-                return datetime.datetime.fromisoformat(stp).isoformat()
-            else:
-                # default stop to start + 30 minutes
-                return stpdefault.isoformat()
-        raise ValueError(f"Invalid stop datetime value: {dt}")
+        if stp is None or len(stp) == 0: return stpdefault.isoformat() # default stop to start + default duration
+        if ActivityEntry.validate_iso_date_string(stp):
+            return datetime.datetime.fromisoformat(stp).isoformat()
+        raise ValueError(f"Invalid stop datetime value: {stp}")
     
     @staticmethod
     def validate_iso_date_string(dt_str: str) -> bool:
         """Validate ISO format date string."""
+        # Return True if valid
+        # otherwise raise ValueError
         try:
             datetime.datetime.fromisoformat(dt_str)
             return True
-        except ValueError:
-            return False
+        except ValueError as err:
+            err.add_note(f"Invalid ISO datetime:'{dt_str}' len=({len(dt_str)})")
+            raise
     
     @staticmethod
     def calculate_duration(start: str, stop: str) -> float:

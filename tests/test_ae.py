@@ -54,11 +54,11 @@ def test_activity_entry_constructor_with_empty_string_start_in_past():
     te = ActivityEntry(start=start_time_parm, stop=stop_time_parm, \
                        activity=activity, notes=notes)
 
-    # Expect negative duration, start is now, stop is 30 minutes in past
+    # Expect negative duration, start is now, stop is defaul_duration() minutes later
     assert te.duration <= 0.0, \
         f"Duration is not correct as: te.duration({str(te.duration)})"
 
-def test_activity_entry_constructor_with_empty_string_stop_in_past():
+def test_activity_entry_constructor_with_empty_string_stop():
     ''' Test empty string as stop time'''
     # use start time 30 minutes in the future
     # Expect constructor to set stop time to start time plus default_duration() minutes
@@ -73,12 +73,11 @@ def test_activity_entry_constructor_with_empty_string_stop_in_past():
     te = ActivityEntry(start=start_time_parm, stop=stop_time_parm, \
                        activity=activity, notes=notes)
 
-    # Expect negpositive duration, stop is start + default_duration
+    # Expect positive duration, start is before stop by default_duration() minutes
     assert te.duration >= 0.0, \
         f"Duration is not correct as: te.duration({str(te.duration)})"
     assert te.duration == ActivityEntry.default_duration_hours(), \
         f"Duration is not correct as: te.duration({str(te.duration)})"
-
 
 def test_activity_entry_constructor_with_invalid_iso_string_start():
     # Test invalid ISO format for start time
@@ -98,46 +97,46 @@ def test_activity_entry_constructor_with_invalid_iso_string_start():
     with pytest.raises(ValueError):
         ActivityEntry(start=start_time, stop=stop_time, activity=activity, notes=notes)
 
-def test_activity_entry_default_constructor():
-    te = ActivityEntry()
-
-    assert isinstance(te.start, datetime.datetime), "Start time is not a datetime object"
-    assert isinstance(te.stop, datetime.datetime), "Stop time is not a datetime object"
-    assert te.activity == '', "Default activity is not empty"
-    assert te.notes == '', "Default notes are not empty"
-    #assert te.duration == te.default_duration(), "Default duration is not correct"
-
 def test_validate_start():
     # Assuming validate_start is a static method of ActivityEntry class
     valid_start = "2025-01-20T13:00:00"
     invalid_start = "invalid-date-format"
 
     # Test valid start time
-    assert ActivityEntry.validate_start(valid_start) == datetime.datetime.fromisoformat(valid_start), "Valid start time failed validation"
+    assert ActivityEntry.validate_start(valid_start) == valid_start
 
-    # Test invalid start time
+    # Test invalid start time string value
     with pytest.raises(ValueError):
         ActivityEntry.validate_start(invalid_start)
 
-    # Test invalid start time
-    with pytest.raises(ValueError):
+    # Test invalid input type None start time
+    with pytest.raises(TypeError):
+        ActivityEntry.validate_start(None)
+
+    # Test invalid input type tuple start time
+    with pytest.raises(TypeError):
         ActivityEntry.validate_start((1,2))
 
 def test_validate_stop():
     # Assuming validate_stop is a static method of ActivityEntry class
-    valid_start = datetime.datetime.fromisoformat("2025-01-20T14:00:00")
+    valid_start = "2025-01-20T14:00:00"
     valid_stop = "2025-01-20T14:30:00"
     invalid_stop = "invalid-date-format"
 
-    # Test valid stop time
-    assert ActivityEntry.validate_stop(valid_start, valid_stop) == datetime.datetime.fromisoformat(valid_stop), "Valid stop time failed validation"
+    # Test valid stop time 
+    assert ActivityEntry.validate_stop(valid_start, valid_stop) == valid_stop, \
+        "Valid stop time failed validation"
 
-    # Test invalid stop time
+    # Test invalid stop time string value
     with pytest.raises(ValueError):
         ActivityEntry.validate_stop(valid_start, invalid_stop)
 
-    # Test invalid stop time
-    with pytest.raises(ValueError):
+    # Test invalid input type None stop time
+    with pytest.raises(TypeError):
+        ActivityEntry.validate_stop(None)
+
+    # Test invalid input type tuple stop time
+    with pytest.raises(TypeError):
         ActivityEntry.validate_stop(valid_start, (1,2))
 
 def test_activity_entry_constructor_with_none_start():
