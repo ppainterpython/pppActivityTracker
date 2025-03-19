@@ -60,8 +60,8 @@ class ActivityEntry:
         activity : str
         notes : str
         """
-        self.start = self.validate_start(self.start)
-        self.stop = self.validate_stop(self.start, self.stop)
+        self.start = atu.validate_start(self.start)
+        self.stop = atu.validate_stop(self.start, self.stop)
         self.duration = atu.calculate_duration(self.start, self.stop) # duration in hours as float
                                                
     def __str__(self):

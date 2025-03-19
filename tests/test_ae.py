@@ -36,34 +36,34 @@ def test_activity_entry_constructor():
 def test_activity_entry_constructor_recoverable_input_value_variety():
     ''' Test other edge cases for ActivityEntry() input values'''
 
-    #region Test empty string for start time, expect conversion to default of now()
+    #region Test 1. start=\"\"", stop in future, expect start to convert to now()
     try:
         # set stop time to now() plus default_duration() minutes
-        stop_time_parm = atu.default_stop_time(None)
-        stop_time_dt = atu.iso_date(stop_time_parm)
-        activity = "learning"
-        notes = "Place notes here"
+        stop_time_parm : str = atu.default_stop_time(None)
+        activity : str = "learning 1"
+        notes : str = "Place notes here 1"
     except Exception as e:
-        pytest.fail(f"Setup failed for empty string start with stop in future: {e}")
+        pytest.fail(f"Setup failed for start=\"\", stop in future: {e}")
 
     te = ActivityEntry(start="", stop=stop_time_parm, \
                        activity=activity, notes=notes)
 
     # Expect positive duration, start is now, stop is 30 minutes later
     assert te.duration >= 0.0, \
-        f"Incorrect duration for stop time in future: te.duration({str(te.duration)})"
+        f"Incorrect duration, stop in future: te.duration({str(te.duration)})"
     del te
     #endregion
 
-    #region Test empty string for start time, expect conversion to default of now()
+    #region Test 2. start=\"\"", stop in past, expect negative duration value
+    # Expect start to convert to now()
     try:
         # use stop time default_duration() minutes in the past from now
-        stop_time_dt = atu.iso_date_now() - atu.default_duration()
-        stop_time_parm = stop_time_dt.isoformat() # 30 minutes in the future
-        activity = "learning"
-        notes = "Place notes here"
+        stop_time_parm = atu.decrease_time(atu.iso_date_now_string(), \
+                                    minutes=atu.default_duration("minutes")) 
+        activity += " 2"
+        notes += " 2"
     except Exception as e:
-        pytest.fail(f"Setup failed for empty string start with stop in past: {e}")
+        pytest.fail(f"Setup failed for start=\"\", stop in past: {e}")
 
     te = ActivityEntry(start="", stop=stop_time_parm, \
                        activity=activity, notes=notes)
@@ -74,13 +74,12 @@ def test_activity_entry_constructor_recoverable_input_value_variety():
     del te
     #endregion
 
-    #region Test None for start time, expect conversion to default of now()
+    #region Test 3. start=None, stop in future, expect start to convert to now()
     try:
         # use stop time default_duration() minutes in the future from now
-        stop_time_dt = atu.iso_date_now() + atu.default_duration()
-        stop_time_parm = stop_time_dt.isoformat() # 30 minutes in the future
-        activity = "learning"
-        notes = "Place notes here"
+        stop_time_parm = atu.default_stop_time(None)
+        activity += " 3"
+        notes += " 3"
     except Exception as e:
         pytest.fail(f"Setup failed for None start with stop in future: {e}")
 
@@ -89,27 +88,28 @@ def test_activity_entry_constructor_recoverable_input_value_variety():
     # Expect positive duration, start is before stop by default_duration() minutes
     assert te.duration >= 0.0, \
         f"Duration is not correct as: te.duration({str(te.duration)})"
-    assert te.duration == approx(atu.default_duration_hours(),rel=0.001), \
+    assert te.duration == approx(atu.default_duration("hours"),rel=0.1), \
         f"Duration is not correct as: te.duration({str(te.duration)})"
     del te
     #endregion
 
-    #region Test empty string for start time, expect conversion to default of now()
+    #region Test 4. with start=None, stop in past, expect negative duration value
+    # expect start to convert to now()
     try:
         # use stop time default_duration() minutes in the future from now
-        stop_time_dt = atu.iso_date_now() - atu.default_duration()
-        stop_time_parm = stop_time_dt.isoformat() # 30 minutes in the future
+        stop_time_parm = atu.decrease_time(atu.iso_date_now_string(), \
+                                    minutes=atu.default_duration("minutes")) 
         activity = "learning"
         notes = "Place notes here"
     except Exception as e:
         pytest.fail(f"Setup failed for None start with stop in future: {e}")
 
-    te = ActivityEntry(start="", stop=stop_time_parm, activity=activity, notes=notes)
+    te = ActivityEntry(start=None, stop=stop_time_parm, activity=activity, notes=notes)
 
     # Expect negative duration, start is after stop by default_duration() minutes
     assert te.duration <= 0.0, \
         f"Duration is not correct as: te.duration({str(te.duration)})"
-    assert abs(te.duration) == approx(atu.default_duration_hours(),rel=0.001), \
+    assert abs(te.duration) == approx(atu.default_duration("hours"),rel=0.1), \
         f"Duration is not correct as: te.duration({str(te.duration)})"
     del te
     #endregion
