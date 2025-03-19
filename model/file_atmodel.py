@@ -149,7 +149,7 @@ class FileATModel(ATModel):
             add an ActivityEntry to the activities list"""
         self.__activities.append(ae)
         self.__modified_by = getpass.getuser()
-        self.__last_modified_date = FileATModel.current_timestamp()
+        self.__last_modified_date = atu.current_timestamp()
         return ae
     #endregion
 
@@ -167,18 +167,5 @@ class FileATModel(ATModel):
         """ Return the current date and time as a ISO format string """
         return atu.iso_date_now_string()
 
-    @staticmethod
-    def current_timestamp() -> str:
-        """ Return the current date and time as a ISO format string """
-        return atu.iso_date_now_string()
-    
-    @staticmethod
-    def default_duration(unit : str = "minutes") -> int:
-        """ Return the default duration for an activity in minutes or seconds """
-        if unit == "minutes":
-            return TE_DEFAULT_DURATION
-        elif unit == "seconds":
-            return TE_DEFAULT_DURATION_SECONDS
-        else: return 0
     #endregion
 

@@ -28,6 +28,7 @@ def test_atmodel_add_activity():
     an = "painterActivity"
     # TODO: ae1.duration is float hours, but dur is minutes.
     dur : int = FileATModel.default_duration() # minutes
+    dur_hours : float = float(dur) / 60.0 # hours
     start1 = atu.iso_date_now_string()
     start2 = atu.increase_time(start1, minutes=(dur + 1)) # duration + 1 min later
     start3 = atu.increase_time(start2, minutes=(dur + 1)) # duration + 1 min later
