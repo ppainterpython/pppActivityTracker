@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------+
-import datetime, pytest
+import pytest
 from typing import List
 import at_utilities.at_utils as atu
 
@@ -28,32 +28,39 @@ def test_iso_date_string():
 def test_iso_date():
     """Test the iso_date and confirm_iso_date functions."""
     dt_str : str = None
-    # Test with current timestamp len is reasonable
+    # Obtain current_timestamp() to use as input to iso_date()
+    # Test with current_timestamp() len is reasonable
     assert len(dt_str := atu.current_timestamp()) >= len("2023-10-01T12:00:00"), \
         f"current_timestamp() invalid ISO date string:'{dt_str}' len={len(dt_str)}"
-    
     assert (dt := atu.iso_date(dt_str)) is not None, \
         f"iso_date(\"{dt_str}\") returned None"
+    assert atu.confirm_iso_date(dt), \
+        f"iso_date(\"{dt_str}\") returned invalid internal ISO Date object"
+    
+    # Test iso_date() with invalid recoverable input of None or ""
+    # Test iso_date() converts None and "" inputs to current time 
+    # Note: the default tolerance is 1 second, be careful with breakpoints
+    # and delays in the test.
+    assert atu.confirm_iso_date((dt := atu.iso_date(None))), \
+        "iso_date(None) returned invalid internal ISO Date object"
+    assert atu.iso_date_approx(atu.iso_date_string(dt), \
+                               atu.current_timestamp()), \
+        f"iso_date(None) not approx = to current_timestamp() default tolerance"
+    assert atu.confirm_iso_date((dt := atu.iso_date(""))), \
+        f"iso_date(\"\") returned invalid internal ISO Date object"
+    assert atu.iso_date_approx(atu.iso_date_string(dt), \
+                               atu.current_timestamp()), \
+        f"iso_date(\"\") is not approximately equal to current_timestamp()"
 
-    # Test with None and empty string. iso_date() should convert to now()
-    assert (dt2_str := atu.current_timestamp()) is not None, \
-        f"current_timestamp() returned None"
-    assert atu.iso_date_approx(dt_str, dt2_str), \
-        f"iso_date(\"{dt_str}\") and iso_date_now() are not approximately equal"
-    # Test iso_date(None) and iso_date_now() are approximately equal
-    assert atu.iso_date_approx(atu.iso_date(None), dt2_str), \
-        "iso_date(None) and iso_date_now() are not approximately equal"
-    # Test iso_date("")) and iso_date_now() are approximately equal
-    assert atu.iso_date_approx(atu.iso_date("") , dt2_str), \
-         "iso_date(\"\") and iso_date_now() are not approximately equal"
-
-    # Test with invalid string
+    # Test with invalid ISO date string
     with pytest.raises(ValueError):
         atu.iso_date("invalid-date-string")
-    # Test with valid but different format
+    # Test with valid but different ISO date format
     dt_str = "2023-10-01 12:00:00"
-    expected_dt = datetime.datetime(2023, 10, 1, 12, 0, 0)
-    assert atu.iso_date(dt_str) == expected_dt, "iso_date should handle different formats correctly"
+    assert (dt := atu.iso_date(dt_str)) is not None, \
+        f"iso_date(\"{dt_str}\") returned None"
+    assert dt == atu.iso_date(dt_str), \
+        "iso_date() should handle different formats correctly"
     # Test with invalid format
     with pytest.raises(ValueError):
         atu.iso_date("2023/10/01 12:00:00")
@@ -68,25 +75,28 @@ def test_iso_date():
         atu.iso_date("2023-10-01T12:60:00")
 #endregion
 
-#region test_iso_date_now()
-def test_iso_date_now():
-    """Test the iso_date_now function."""
-    now = datetime.datetime.now()
-    assert isinstance(atu.iso_date_now(), datetime.datetime), "iso_date_now should return a datetime object"
+#region test_now_iso_date()
+def test_now_iso_date():
+    """Test the now_iso_date function."""
+    now = atu.now_iso_date()
+    assert atu.confirm_iso_date(atu.now_iso_date()), \
+        "now_iso_date() returned an invalid internal ISO Date object"
     # Allow for a small delay in the test
     # to ensure the current time is after the recorded 'now'
-    assert atu.iso_date_now() >= now, "iso_date_now should return current datetime"
+    assert atu.now_iso_date() >= now, "now_iso_date should return current datetime"
 #endregion
 
-#region test_iso_date_now_string()
-def test_iso_date_now_string():
-    """Test the iso_date_now_string function."""
-    now = datetime.datetime.now()
-    assert isinstance(atu.iso_date_now_string(), str), "iso_date_now_string should return a string"
+#region test_now_iso_date_string()
+def test_now_iso_date_string():
+    """Test the now_iso_date_string function."""
+    assert (now := atu.now_iso_date()) is not None, \
+        "now_iso_date() returned None"
+    assert atu.confirm_iso_date(now), \
+        "now_iso_date() returned an invalid internal ISO Date object"
     # Allow for a small delay in the test
     # to ensure the current time is after the recorded 'now'
-    assert datetime.datetime.fromisoformat(atu.iso_date_now_string()) >= now, \
-        "iso_date_now_string should return current datetime in ISO format"
+    assert atu.now_iso_date() >= now, \
+        "now_iso_date() did compare greater than a previous call"
 #endregion
 
 #region test_iso_date_approx()
@@ -94,20 +104,36 @@ def test_iso_date_approx():
     """Test the iso_date_approx function."""
     dt1 = "2023-10-01T12:00:00"
     dt2 = "2023-10-01T12:00:05"  # 5 seconds apart
-    assert atu.iso_date_approx(dt1, dt2, tolerance=10), "Dates should be approximately equal within 10 seconds"
+    tol = 10
+    assert atu.iso_date_approx(dt1, dt2, tolerance=tol), \
+          f"'{dt1}' not approx equal to '{dt2}', tolerance: {tol} seconds"
+    assert not atu.iso_date_approx(dt1, dt2), \
+          f"'{dt1}' not approx equal to '{dt2}', default tolerance"
+    
 
-    dt1 = atu.iso_date_now_string()  # Current time
-    dt2 = atu.iso_date_now_string()  # Current time
-    assert atu.iso_date_approx(dt1, dt2, tolerance=1), "Dates should be approximately equal within 1 second"
+    dt1 = atu.now_iso_date_string()  # Current time
+    dt2 = atu.now_iso_date_string()  # Current time
+    assert atu.iso_date_approx(dt1, dt2), \
+          f"'{dt1}' not approx equal to '{dt2}', default tolerance"
 
-    # Test with None values
-    with pytest.raises(ValueError):
-        atu.iso_date_approx(None, dt2)
-    with pytest.raises(ValueError):
-        atu.iso_date_approx(dt1, None)
+    # Test with None values, should default to current time
+    assert atu.iso_date_approx(None, atu.now_iso_date_string())
+    assert atu.iso_date_approx(atu.now_iso_date_string(), None)
+    assert atu.iso_date_approx(None, None)
+    with pytest.raises(TypeError):
+        assert atu.iso_date_approx(atu.now_iso_date_string(), \
+                                atu.now_iso_date_string(), None)
+
+    # Test with "" values, should default to current time
+    assert atu.iso_date_approx("", atu.now_iso_date_string())
+    assert atu.iso_date_approx(atu.now_iso_date_string(), "")
+    assert atu.iso_date_approx("", "")
+    with pytest.raises(TypeError):
+        assert atu.iso_date_approx(atu.now_iso_date_string(), \
+                                atu.now_iso_date_string(), "")
 
     # Test with invalid tolerance
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         atu.iso_date_approx(dt1, dt2, tolerance="invalid")
 
     # Test with invalid date strings
@@ -139,7 +165,7 @@ def test_validate_start():
 
     # Test invalid input type None start time, expect validate_start() to 
     # return now(), so the comparison should be within 2 seconcds.
-    assert atu.iso_date_approx(atu.validate_start(None), atu.iso_date_now_string(), 2)
+    assert atu.iso_date_approx(atu.validate_start(None), atu.now_iso_date_string(), 2)
 
     # Test invalid input type tuple start time
     with pytest.raises(TypeError):
@@ -174,8 +200,8 @@ def test_validate_stop():
 def test_validate_iso_date_string():
     valid_iso_date = "2025-01-20T13:00:00"
     invalid_iso_date = "invalid-date-format"
-    assert atu.validate_iso_date_string(valid_iso_date) == True, \
-        "Valid ISO date string failed validation"
+    assert atu.validate_iso_date_string(valid_iso_date), \
+        f"Valid ISO date '{valid_iso_date}' failed validation"
     with pytest.raises(ValueError):
         atu.validate_iso_date_string(invalid_iso_date)
 #endregion

@@ -58,7 +58,7 @@ def test_activity_entry_constructor_recoverable_input_value_variety():
     # Expect start to convert to now()
     try:
         # use stop time default_duration() minutes in the past from now
-        stop_time_parm = atu.decrease_time(atu.iso_date_now_string(), \
+        stop_time_parm = atu.decrease_time(atu.now_iso_date_string(), \
                                     minutes=atu.default_duration("minutes")) 
         activity += " 2"
         notes += " 2"
@@ -97,7 +97,7 @@ def test_activity_entry_constructor_recoverable_input_value_variety():
     # expect start to convert to now()
     try:
         # use stop time default_duration() minutes in the future from now
-        stop_time_parm = atu.decrease_time(atu.iso_date_now_string(), \
+        stop_time_parm = atu.decrease_time(atu.now_iso_date_string(), \
                                     minutes=atu.default_duration("minutes")) 
         activity = "learning"
         notes = "Place notes here"

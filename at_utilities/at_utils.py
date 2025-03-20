@@ -7,12 +7,16 @@ import datetime
 # be useful in hours, minutes or seconds. Applications using at_utils will
 # often need to initialiize start, stop and duration time values. These
 # constants are to help with that process.
+# 
+# The iso_date_*() functions are a simple, purely functional interface to
+# to an imaginary ISODate object class. It hides the python datetime.datetime
+# and datetime.timedelta classes from callers.
 ATU_DEFAULT_DURATION = 0.5 # Default in hours for an activity entry
 ATU_DEFAULT_DURATION_MINUTES = ATU_DEFAULT_DURATION * 60.0 # Default in minutes
 ATU_DEFAULT_DURATION_SECONDS = ATU_DEFAULT_DURATION * 3600.0 # Default in seconds
 #-----------------------------------------------------------------------------+
 
-#region ISO Date Utilities
+#region ISO Date functional interface
 def iso_date_string(dt: datetime.datetime) -> str:
     """Convert a datetime object to an ISO format string."""
     if not isinstance(dt, datetime.datetime):
@@ -21,7 +25,12 @@ def iso_date_string(dt: datetime.datetime) -> str:
 
 def iso_date(dt_str: str) -> datetime.datetime:
     """Convert an ISO format string to a datetime object."""
-    if dt_str is None or len(dt_str) == 0: return iso_date_now()
+    # parameter type validation
+    if not isinstance(dt_str, (type(None),str)):
+        t = type(dt_str).__name__
+        raise TypeError(f"type:str required for dt_str, not type: {t}")
+    # check for None or empty string, default to current time
+    if dt_str is None or len(dt_str) == 0: return now_iso_date()
     return datetime.datetime.fromisoformat(dt_str)
 
 def confirm_iso_date(dt : datetime.datetime) -> bool:
@@ -37,40 +46,63 @@ def validate_iso_date_string(dt_str: str) -> bool:
         # parameter type validation
         if not isinstance(dt_str, (type(None),str)):
             t = type(dt_str).__name__
-            raise TypeError(f"Type:str required for dt_str, not Type: {t}")
+            raise TypeError(f"type:str required for dt_str, not type: {t}")
         # check for None or empty string
         if not isinstance(dt_str, str) or dt_str is None or len(dt_str) == 0: 
-            raise ValueError(f"Type:str required for dt_str, not Type: {t}")
-        datetime.datetime.fromisoformat(dt_str) # return value
+            raise ValueError(f"type:str required for dt_str, not type: {t}")
+        datetime.datetime.fromisoformat(dt_str)
+        return True
     except ValueError:
         raise ValueError(f"Invalid ISO datetime str value: '{dt_str}'")
 
-def iso_date_now() -> datetime.datetime:
+def now_iso_date() -> datetime.datetime:
     """Return the current date and time."""
     return datetime.datetime.now()
 
-def iso_date_now_string() -> str:
+def now_iso_date_string() -> str:
     """Return the current date and time in ISO format."""
     return datetime.datetime.now().isoformat()
 
 def iso_date_approx(dt1:str, dt2:str, tolerance = 1) -> bool:
     """ Compare two ISO date strings for approximate equality within a tolerance 
     (in seconds). """
-    if dt1 is None or dt2 is None:
-        raise ValueError("Cannot compare None values")
+    if not isinstance(dt1, (type(None),str)) or not isinstance(dt2, (type(None),str)):
+        t = type(dt1).__name__ + " or " + type(dt2).__name__
+        raise TypeError(f"dt1 and dt2 must be type:str or None, not type: {t}")
     if not isinstance(tolerance, (int, float)):
-        raise ValueError("Tolerance must be an integer or float")
+        t = type(tolerance).__name__
+        raise TypeError(f"Tolerance must be type: integer|float, not type:{t}")
     try:
+        if dt1 is None or len(dt1) == 0: dt1 = current_timestamp() # default convert
+        if dt2 is None or len(dt2) == 0: dt2 = current_timestamp() # default convert
         d1 = iso_date(dt1)
         d2 = iso_date(dt2)
         delta = abs((d2 - d1).total_seconds())
     except:
-        raise ValueError("Error during calculation of date difference")
+        raise ValueError(f"Error with dt1:'{dt1}' or dt2:'{dt2}'")
+    retval : bool = (to_float(delta) <= to_float(tolerance))
+    return retval
 
-    return delta <= tolerance
-#endregion
+def to_int(value) -> int:
+    """Convert float value to an int, if int, return it."""
+    try:
+        if(type(value) == float):
+            return round(value)
+        return int(value)
+    except (ValueError, TypeError):
+        raise ValueError(f"Cannot convert {value} to int")
 
-#region Timestamp Utilities
+def to_float(value) -> float:
+    """Convert int value to an float, if float, return it."""
+    try:
+        if(type(value) == int): return float(value)
+        if(type(value) == float): return value
+        return 0.0
+    except (ValueError, TypeError):
+        raise ValueError(f"Cannot convert {value} to int")
+#endregion ISO Date functional interface
+
+#region Timestamp helper functions
 
 #region validate_start()
 def validate_start(strt: str) -> str:
@@ -82,11 +114,11 @@ def validate_start(strt: str) -> str:
     if isinstance(strt, (type(None), str)):
         if (strt is None) or (len(strt) == 0): return default_start_time()
         if not isinstance(strt, str):
-            raise TypeError(f"Input strt: str required, not Type: {type(dt).__name__}")
+            raise TypeError(f"Input strt: str required, not type: {type(dt).__name__}")
         if validate_iso_date_string(strt): return strt
         else:
-            raise ValueError(f"Type:str required for stp, not Type: {type(strt).__name__}")
-    raise TypeError(f"Invalid type for strt input value: Type:'{strt}' = {strt}")
+            raise ValueError(f"type:str required for stp, not type: {type(strt).__name__}")
+    raise TypeError(f"Invalid type for strt input value: type:'{strt}' = {strt}")
 #endregion
 
 #region validate_stop()
@@ -103,13 +135,13 @@ def validate_stop(strt: str, stp: str) -> str:
     if isinstance(strt, (type(None), str)):
         s = validate_start(strt) # ValueError raised if invalid strt
     else:
-        raise TypeError(f"Type:str required for strt, not Type: {type(strt).__name__}")
+        raise TypeError(f"type:str required for strt, not type: {type(strt).__name__}")
     if isinstance(stp, (type(None), str)):
         if (stp is None) or (len(stp) == 0): return default_stop_time(s)
         if validate_iso_date_string(stp):
             return datetime.datetime.fromisoformat(stp).isoformat()
     else:
-        raise TypeError(f"Type:str required for stp, not Type: {type(stp).__name__}")
+        raise TypeError(f"type:str required for stp, not type: {type(stp).__name__}")
 #endregion
 
 #region increase_time()
@@ -135,17 +167,6 @@ def decrease_time(tval : str, hours : int = 0, minutes : int = 0, seconds : int 
     delta = datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds)
     new_dt = dt - delta
     return iso_date_string(new_dt)
-#endregion
-
-#region
-def to_int(value) -> int:
-    """Convert if value is a float, convertto an int, if int, return it."""
-    try:
-        if(type(value) == float):
-            return round(value)
-        return int(value)
-    except (ValueError, TypeError):
-        raise ValueError(f"Cannot convert {value} to int")
 #endregion
 
 #region calculate_duration()
@@ -212,7 +233,7 @@ def default_stop_time(start: str = None) -> str:
 #region current_timestamp()
 def current_timestamp() -> str:
     """ Return the current date and time as a ISO format string """
-    return iso_date_now_string()
+    return now_iso_date_string()
 #endregion
 
 #region

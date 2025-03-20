@@ -28,7 +28,7 @@ def test_atmodel_add_activity():
     # TODO: ae1.duration is float hours, but dur is minutes.
     default_dur_hours : float = atu.default_duration() # hours
     int_dur_minutes : int = int(default_dur_hours * 60) # convert to minutes
-    start1 = atu.iso_date_now_string()
+    start1 = atu.now_iso_date_string()
     start2 = atu.increase_time(start1, minutes=(int_dur_minutes + 1)) # duration + 1 min later
     start3 = atu.increase_time(start2, minutes=(int_dur_minutes + 1)) # duration + 1 min later
     stop1 = atu.increase_time(start1, minutes=int_dur_minutes)

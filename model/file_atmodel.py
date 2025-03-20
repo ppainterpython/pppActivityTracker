@@ -165,7 +165,7 @@ class FileATModel(ATModel):
     @staticmethod
     def default_creation_date() -> str:
         """ Return the current date and time as a ISO format string """
-        return atu.iso_date_now_string()
+        return atu.now_iso_date_string()
 
     #endregion
 
