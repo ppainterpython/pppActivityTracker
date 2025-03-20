@@ -1,5 +1,4 @@
 #-----------------------------------------------------------------------------+
-import datetime
 from abc import ABC, abstractmethod
 from typing import List
 from model.ae import ActivityEntry

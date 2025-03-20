@@ -16,7 +16,7 @@ def test_iso_date_string():
       f"iso_date_string() incorrect return='{res}' expected='{expected_iso}'"
     assert not atu.confirm_iso_date("foo"), \
         "confirm_iso_date() failed to detect incorrect input type' "
-    # Test with unvalid type of input
+    # Test with invalid type of input
     with pytest.raises(TypeError) : atu.iso_date_string(None)
     with pytest.raises(TypeError) : atu.iso_date_string("")
     with pytest.raises(TypeError) : atu.iso_date_string(12345)
@@ -30,7 +30,8 @@ def test_iso_date():
     dt_str : str = None
     # Obtain current_timestamp() to use as input to iso_date()
     # Test with current_timestamp() len is reasonable
-    assert len(dt_str := atu.current_timestamp()) >= len("2023-10-01T12:00:00"), \
+    assert len(dt_str := atu.current_timestamp()) >= \
+        len("2023-10-01T12:00:00"), \
         f"current_timestamp() invalid ISO date string:'{dt_str}' len={len(dt_str)}"
     assert (dt := atu.iso_date(dt_str)) is not None, \
         f"iso_date(\"{dt_str}\") returned None"
@@ -73,6 +74,12 @@ def test_iso_date():
     # Test with invalid datetime
     with pytest.raises(ValueError):
         atu.iso_date("2023-10-01T12:60:00")
+
+    #Test with invalid type of input
+    with pytest.raises(TypeError):
+        atu.iso_date((2025, 3, 20,10, 30, 0))  # tuple
+        atu.iso_date([2025, 3, 20,10, 30, 0])  # tuple
+        atu.iso_date(2500.56) # float
 #endregion
 
 #region test_now_iso_date()
@@ -83,7 +90,7 @@ def test_now_iso_date():
         "now_iso_date() returned an invalid internal ISO Date object"
     # Allow for a small delay in the test
     # to ensure the current time is after the recorded 'now'
-    assert atu.now_iso_date() >= now, "now_iso_date should return current datetime"
+    assert atu.now_iso_date() >= now, "now_iso_date does not return current datetime"
 #endregion
 
 #region test_now_iso_date_string()
@@ -132,9 +139,13 @@ def test_iso_date_approx():
         assert atu.iso_date_approx(atu.now_iso_date_string(), \
                                 atu.now_iso_date_string(), "")
 
-    # Test with invalid tolerance
+    # Test with invalid Types
     with pytest.raises(TypeError):
         atu.iso_date_approx(dt1, dt2, tolerance="invalid")
+    with pytest.raises(TypeError):
+        atu.iso_date_approx(1.0, dt2, tolerance="invalid")
+    with pytest.raises(TypeError):
+        atu.iso_date_approx(2.0, dt2, tolerance="invalid")
 
     # Test with invalid date strings
     with pytest.raises(ValueError):
@@ -142,6 +153,27 @@ def test_iso_date_approx():
     with pytest.raises(ValueError):
         atu.iso_date_approx(dt1, "invalid-date-string")
 #endregion test_iso_date_approx()
+
+#region test_to_int()
+def test_to_int():
+    assert atu.to_int(1.0) == 1, "to_int(1.0) does not return 1"
+    assert atu.to_int(1.5) == 2, "to_int(1.5) does not return 2" 
+    assert atu.to_int(1) == 1, "to_int(1) does not return 1"
+    assert atu.to_int("1") == 1, "to_int(\"1\") does not return 1"
+    with pytest.raises(ValueError):
+        atu.to_int("1.8"), "to_int(\"1.8\") does not raise ValueError"
+    with pytest.raises(ValueError):
+        atu.to_int("quark"), "to_int(\"quark\") does not raise ValueError"
+#endregion test_to_int()
+
+#region test_to_float()
+def test_to_float():
+    assert atu.to_float(1) == 1.0, "to_float(1) does not return 1.0"
+    assert atu.to_float("1.5") == 1.5, "to_float(\"1.5\") does not return 1.5" 
+    assert atu.to_float("1") == 1.0, "to_float(\"1\") does not return 1.0"
+    with pytest.raises(ValueError):
+        atu.to_float("quark")
+#endregion test_to_float()
 #endregion ISO Date Utilities
 
 #region test_validate_start()
@@ -204,6 +236,12 @@ def test_validate_iso_date_string():
         f"Valid ISO date '{valid_iso_date}' failed validation"
     with pytest.raises(ValueError):
         atu.validate_iso_date_string(invalid_iso_date)
+    # Test with invalid type of input
+    with pytest.raises(TypeError) : atu.validate_iso_date_string(None)
+    with pytest.raises(TypeError) : atu.validate_iso_date_string("")
+    with pytest.raises(TypeError) : atu.validate_iso_date_string(12345)
+    with pytest.raises(TypeError) : atu.validate_iso_date_string((1,2,3,4,5))
+    with pytest.raises(TypeError) : atu.validate_iso_date_string([1,2,3,4,5])
 #endregion
 
 

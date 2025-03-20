@@ -16,11 +16,12 @@ ATU_DEFAULT_DURATION_MINUTES = ATU_DEFAULT_DURATION * 60.0 # Default in minutes
 ATU_DEFAULT_DURATION_SECONDS = ATU_DEFAULT_DURATION * 3600.0 # Default in seconds
 #-----------------------------------------------------------------------------+
 
-#region ISO Date functional interface
+#region ISO 8601 Timestamp functional interface
 def iso_date_string(dt: datetime.datetime) -> str:
     """Convert a datetime object to an ISO format string."""
     if not isinstance(dt, datetime.datetime):
-        raise TypeError("Cannot convert None to ISO date string")
+        t = type(dt).__name__
+        raise TypeError("Cannot convert type:'{t}' to ISO date string")
     return dt.isoformat()
 
 def iso_date(dt_str: str) -> datetime.datetime:
@@ -43,13 +44,13 @@ def validate_iso_date_string(dt_str: str) -> bool:
     # Return True if valid
     # otherwise raise ValueError
     try:
-        # parameter type validation
-        if not isinstance(dt_str, (type(None),str)):
+        # parameter type validation, only nonzero length string is valid
+        if not isinstance(dt_str, str) or \
+            len(dt_str) < len("2023-10-01T12:00:00"):
             t = type(dt_str).__name__
-            raise TypeError(f"type:str required for dt_str, not type: {t}")
-        # check for None or empty string
-        if not isinstance(dt_str, str) or dt_str is None or len(dt_str) == 0: 
-            raise ValueError(f"type:str required for dt_str, not type: {t}")
+            m = f"requires valid ISO format date string, not type: {t}"
+            raise TypeError(m)
+        # check for valid ISO date & time format string
         datetime.datetime.fromisoformat(dt_str)
         return True
     except ValueError:
@@ -68,7 +69,7 @@ def iso_date_approx(dt1:str, dt2:str, tolerance = 1) -> bool:
     (in seconds). """
     if not isinstance(dt1, (type(None),str)) or not isinstance(dt2, (type(None),str)):
         t = type(dt1).__name__ + " or " + type(dt2).__name__
-        raise TypeError(f"dt1 and dt2 must be type:str or None, not type: {t}")
+        raise TypeError(f"dt1, dt2 must be type:str or None, not type: {t}")
     if not isinstance(tolerance, (int, float)):
         t = type(tolerance).__name__
         raise TypeError(f"Tolerance must be type: integer|float, not type:{t}")
@@ -89,18 +90,20 @@ def to_int(value) -> int:
         if(type(value) == float):
             return round(value)
         return int(value)
-    except (ValueError, TypeError):
-        raise ValueError(f"Cannot convert {value} to int")
+    except (ValueError, TypeError) as e:
+        e.add_note(f"{type(e).__name__}: Cannot convert '{value}' to int")
+        raise 
 
 def to_float(value) -> float:
     """Convert int value to an float, if float, return it."""
     try:
         if(type(value) == int): return float(value)
         if(type(value) == float): return value
-        return 0.0
-    except (ValueError, TypeError):
-        raise ValueError(f"Cannot convert {value} to int")
-#endregion ISO Date functional interface
+        return float(value)
+    except (ValueError, TypeError) as e:
+        e.add_note(f"{type(e).__name__}: Cannot convert '{value}' to int")
+        raise
+#endregion ISO 8601 Timestamp functional interface
 
 #region Timestamp helper functions
 

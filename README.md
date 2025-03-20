@@ -136,9 +136,20 @@ flowchart LR
 
 ## Design Decisions
 
-### Dates as Strings
+### Dates & Timestamps as Strings
 
-All timestamps are kept as string values using the ISO format. To lessen the dependencies on Python datetime module, the manipulation of datatime objects is isolated into the at_utilities module.
+All dates are timestamps, and are kept as string values using the ISO 8601 format. To lessen the dependencies on Python datetime module, the manipulation of datatime objects is isolated into the `at_utilities.py` (atu) module.
+
+Since this is an activity tracking application, the domain model includes a lot data-time, or timestamp values for start, stop and duration. The `atu` module has two sections. First, a simple, purely function interface to `iso_date` as an implicit timestamp object. Second, there are additional helper functions useful for working with start, stop and duration for calculations with timestamps using `iso_date`.
+
+#### `iso_date` Functional Model
+
+A collection of functions provides all the manipulation support for dates
+as strings. The function names have 'iso_date' as part of the name. I worked to have all references to the python datetime package be isolated by the `iso_date` function set.
+
+#### Timestamp Helper Functions
+
+This section provides a useful set of manipulation and default value provisioning. This was separated to anticipate the need for JSON conversion and I18N support later.
 
 ## Dependencies
 
