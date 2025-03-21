@@ -32,6 +32,7 @@ def iso_date(dt_str: str) -> datetime.datetime:
         raise TypeError(f"type:str required for dt_str, not type: {t}")
     # check for None or empty string, default to current time
     if dt_str is None or len(dt_str) == 0: return now_iso_date()
+    # .fromisoformat() raises ValueError if invalid
     return datetime.datetime.fromisoformat(dt_str)
 
 def confirm_iso_date(dt : datetime.datetime) -> bool:
@@ -42,14 +43,16 @@ def confirm_iso_date(dt : datetime.datetime) -> bool:
 def validate_iso_date_string(dt_str: str) -> bool:
     """Validate ISO format date string."""
     # Return True if valid
-    # otherwise raise ValueError
+    # Otherwise raises TypeError or ValueError
+    # parameter type validation, only nonzero length string is valid
+    if not isinstance(dt_str, str): 
+        t = type(dt_str).__name__
+        m = f"Requires str with valid ISO timestamp, not type: {t}"
+        raise TypeError(m)
+    if len(dt_str) < len("2023-10-01T12:00:00"):
+        m = f"Requires valid ISO format timestamp, not '{dt_str}'"
+        raise ValueError(m)
     try:
-        # parameter type validation, only nonzero length string is valid
-        if not isinstance(dt_str, str) or \
-            len(dt_str) < len("2023-10-01T12:00:00"):
-            t = type(dt_str).__name__
-            m = f"Requires valid ISO format date string, not type: {t}"
-            raise TypeError(m)
         # check for valid ISO date & time format string
         datetime.datetime.fromisoformat(dt_str)
         return True
@@ -159,7 +162,7 @@ def increase_time(tval : str=now_iso_date_string(), hours : int = 0, \
         raise
 #endregion
 
-#region increase_time()
+#region decrease_time()
 def decrease_time(tval : str=now_iso_date_string(), hours : int = 0, \
                   minutes : int = 0, seconds : int = 0) -> float:
     """Decrease the time by a given number of hours, minutes and seconds."""
@@ -182,31 +185,38 @@ def decrease_time(tval : str=now_iso_date_string(), hours : int = 0, \
 #endregion
 
 #region calculate_duration()
-def calculate_duration(start: str="", stop: str="", unit : str = "hours") -> float:
+def calculate_duration(start: str, stop: str, unit : str = "hours") -> float:
     """Calculate duration in hours, minutes or seconds from start and stop times."""
-    # Inputs start stop must be valid ISO date time strings
-    # Return the duration as a float specified by units for hours, minutes or seconds
-    # Return negative value if stop is before start
-    # TODO: to raise or not? Returning 0.0 for invalid input is not robust.
-    try:
-        if not isinstance(start, (type(None), str)) or not isinstance(stop, (type(None), str)) or \
-            start is None or len(start) == 0 or stop is None or len(stop) == 0:
-            return 0.0 # invalid input, cannot compute duration
-        if not (validate_iso_date_string(start) and 
-                validate_iso_date_string(stop)):
-            return 0.0
-        start_dt = iso_date(start)
-        stop_dt = iso_date(stop)
-        td = stop_dt - start_dt
-        seconds : float = td.total_seconds() # the only float method on datetime.timedelta
-        minutes : float = seconds / 60.0
-        hours : float = seconds / (60.0 * 60.0)
-        if unit == "hours": return hours
-        elif unit == "minutes": return minutes
-        return seconds 
-    except Exception as e:
-        print(f"Error calculating duration: {e}")
-        return 0.0
+    # Required parameters start & stop must be valid ISO 8601 date time strings.
+    # Return the duration as a float specified by units for hours, minutes or 
+    # seconds.
+    # Return negative value if stop is before start.
+    # Raises TypeError or ValueError as appropriate.
+    valid_units = ("hours", "minutes", "seconds")
+    # check for TypeError if start or stop are not type None or str
+    if not isinstance(start, str) or not isinstance(stop, str):
+        t = type(start).__name__ + " or " + type(stop).__name__
+        m = f"start, stop must both be type:str, not type: {t}"
+        raise TypeError(m)
+    # check for ValueError with empty strings
+    if len(start) == 0 or len(stop) == 0:
+        m = "Neither start or stop can be empty strings"
+        raise ValueError(m)
+    if unit not in valid_units:
+        m = f"unit must be one of {valid_units}, not '{unit}'"
+        raise ValueError(m)
+    # Validate the start and stop strings are valid ISO format date strings
+    # Raises ValueError if invalid
+    validate_iso_date_string(start) and validate_iso_date_string(stop)
+    start_dt = iso_date(start) # iso_date() raises ValueError if invalid
+    stop_dt = iso_date(stop)
+    td = stop_dt - start_dt
+    seconds : float = td.total_seconds() # only method returning float 
+    minutes : float = seconds / 60.0
+    hours : float = seconds / (60.0 * 60.0)
+    if unit == "hours": return hours
+    elif unit == "minutes": return minutes
+    return seconds 
 #endregion
 
 #region
@@ -218,7 +228,7 @@ def default_duration(unit : str = "hours") -> float:
         return ATU_DEFAULT_DURATION_MINUTES
     elif unit == "seconds":
         return ATU_DEFAULT_DURATION_SECONDS
-    else: return 0
+    else: return 0.0
 #endregion
 
 #region default_start_time()

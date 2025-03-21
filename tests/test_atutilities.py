@@ -92,7 +92,7 @@ def test_validate_iso_date_string():
         atu.validate_iso_date_string(invalid_iso_date)
     # Test with invalid type of input
     with pytest.raises(TypeError) : atu.validate_iso_date_string(None)
-    with pytest.raises(TypeError) : atu.validate_iso_date_string("")
+    with pytest.raises(ValueError) : atu.validate_iso_date_string("")
     with pytest.raises(TypeError) : atu.validate_iso_date_string(12345)
     with pytest.raises(TypeError) : atu.validate_iso_date_string((1,2,3,4,5))
     with pytest.raises(TypeError) : atu.validate_iso_date_string([1,2,3,4,5])
@@ -310,7 +310,7 @@ def test_increase_time():
 
     # Test invalid time format value
     invalid_time = ""
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         atu.increase_time(tval=invalid_time, hours=1)
 
     # Test invalid increase format
@@ -386,7 +386,7 @@ def test_decrease_time():
 
     # Test invalid time format value
     invalid_time = ""
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         atu.decrease_time(tval=invalid_time, hours=1)
 
     # Test invalid decrease format
@@ -426,18 +426,110 @@ def test_decrease_time():
 #endregion test_decrease_time()
 
 #region test_calculate_duration()
+def test_calculate_duration():
+    """Test the calculate_duration function."""
+    start = "2023-10-01T12:00:00"
+    stop = "2023-10-01T14:30:00"  # 2 hours and 30 minutes later
+
+    # Test duration in hours
+    assert atu.calculate_duration(start, stop, unit="hours") == 2.5, \
+        f"Expected 2.5 hours but got {atu.calculate_duration(start, stop, unit='hours')}"
+
+    # Test duration in minutes
+    assert atu.calculate_duration(start, stop, unit="minutes") == 150, \
+        f"Expected 150 minutes but got {atu.calculate_duration(start, stop, unit='minutes')}"
+
+    # Test duration in seconds
+    assert atu.calculate_duration(start, stop, unit="seconds") == 9000, \
+        f"Expected 9000 seconds but got {atu.calculate_duration(start, stop, unit='seconds')}"
+
+    # Test with invalid unit
+    with pytest.raises(ValueError):
+        atu.calculate_duration(start, stop, unit="invalid")
+
+    # Test with stop time before start time
+    assert atu.calculate_duration(stop, start, unit="hours") == -2.5, \
+        f"Expected -2.5 hours but got {atu.calculate_duration(stop, start, unit='hours')}"
+
+    # Test with None values
+    with pytest.raises(TypeError):
+        atu.calculate_duration(None, stop)
+
+    # Test with empty strings
+    with pytest.raises(ValueError):
+        atu.calculate_duration("", "")
+
+    # Test with invalid ISO date strings
+    with pytest.raises(ValueError):
+        atu.calculate_duration("invalid-date", stop)
+    with pytest.raises(ValueError):
+        atu.calculate_duration(start, "invalid-date")
 #endregion test_calculate_duration()
 
 #region test_default_duration()
+def test_default_duration():
+    """Test the default_duration function."""
+    # Test default duration in hours
+    assert atu.default_duration(unit="hours") == 0.5, \
+        f"Expected 0.5 hours but got {atu.default_duration(unit='hours')}"
+
+    # Test default duration in minutes
+    assert atu.default_duration(unit="minutes") == 30.0, \
+        f"Expected 30.0 minutes but got {atu.default_duration(unit='minutes')}"
+
+    # Test default duration in seconds
+    assert atu.default_duration(unit="seconds") == 1800.0, \
+        f"Expected 1800.0 seconds but got {atu.default_duration(unit='seconds')}"
+
+    # Test with invalid unit
+    assert atu.default_duration(unit="invalid") == 0.0, \
+        f"Expected 0.0 for invalid unit but got {atu.default_duration(unit='invalid')}"
 #endregion test_default_duration()
 
 #region test_default_start_time()
+def test_default_start_time():
+    """Test the default_start_time function."""
+    start_time = atu.default_start_time()
+    assert atu.validate_iso_date_string(start_time), \
+        f"default_start_time() did not return a valid ISO date string: {start_time}"
+    assert atu.iso_date_approx(start_time, atu.now_iso_date_string(), tolerance=2), \
+        f"default_start_time() is not approximately equal to the current time"
 #endregion test_default_start_time()
 
 #region test_default_stop_time()
+def test_default_stop_time():
+    """Test the default_stop_time function."""
+    start_time = atu.default_start_time()
+    stop_time = atu.default_stop_time(start_time)
+    
+    assert atu.validate_iso_date_string(stop_time), \
+        f"default_stop_time() did not return a valid ISO date string: {stop_time}"
+    assert atu.iso_date_approx(stop_time, atu.increase_time(start_time, minutes=30), tolerance=2), \
+        f"default_stop_time() is not approximately equal to the start time plus default duration"
+    
+    # Test with None start time
+    stop_time = atu.default_stop_time(None)
+    assert atu.validate_iso_date_string(stop_time), \
+        f"default_stop_time(None) did not return a valid ISO date string: {stop_time}"
+    assert atu.iso_date_approx(stop_time, atu.increase_time(atu.now_iso_date_string(), minutes=30), tolerance=2), \
+        f"default_stop_time(None) is not approximately equal to the current time plus default duration"
+    
+    # Test with empty string start time
+    stop_time = atu.default_stop_time("")
+    assert atu.validate_iso_date_string(stop_time), \
+        f"default_stop_time('') did not return a valid ISO date string: {stop_time}"
+    assert atu.iso_date_approx(stop_time, atu.increase_time(atu.now_iso_date_string(), minutes=30), tolerance=2), \
+        f"default_stop_time('') is not approximately equal to the current time plus default duration"
 #endregion test_default_stop_time()
 
 #region test_current_timestamp()
+def test_current_timestamp():
+    """Test the current_timestamp function."""
+    timestamp = atu.current_timestamp()
+    assert atu.validate_iso_date_string(timestamp), \
+        f"current_timestamp() did not return a valid ISO date string: {timestamp}"
+    assert atu.iso_date_approx(timestamp, atu.now_iso_date_string(), tolerance=2), \
+        f"current_timestamp() is not approximately equal to the current time"
 #endregion test_current_timestamp()
 
 #endregion Timestamp Helper Functions
