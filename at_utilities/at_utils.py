@@ -48,7 +48,7 @@ def validate_iso_date_string(dt_str: str) -> bool:
         if not isinstance(dt_str, str) or \
             len(dt_str) < len("2023-10-01T12:00:00"):
             t = type(dt_str).__name__
-            m = f"requires valid ISO format date string, not type: {t}"
+            m = f"Requires valid ISO format date string, not type: {t}"
             raise TypeError(m)
         # check for valid ISO date & time format string
         datetime.datetime.fromisoformat(dt_str)
@@ -110,66 +110,75 @@ def to_float(value) -> float:
 #region validate_start()
 def validate_start(strt: str) -> str:
     """Validate start time for ActivityEntry constructor."""
-    # Returns a valid ISO format date string for the start time
-    # If dt is not type str, raise TypeError
+    # Validate strt is a valid ISO format date string for the start time
+    # If dt is not type None or str, raise TypeError
+    if not isinstance(strt, (type(None), str)):
+        t = type(strt).__name__
+        m = f"Invalid type for strt input value: type:'{t}' = {strt}"
+        raise TypeError(m)
     # If dt is None or empty string, default to time now
-    # If dt is valid ISO string, return it, else raise ValueError
-    if isinstance(strt, (type(None), str)):
-        if (strt is None) or (len(strt) == 0): return default_start_time()
-        if not isinstance(strt, str):
-            raise TypeError(f"Input strt: str required, not type: {type(dt).__name__}")
-        if validate_iso_date_string(strt): return strt
-        else:
-            raise ValueError(f"type:str required for stp, not type: {type(strt).__name__}")
-    raise TypeError(f"Invalid type for strt input value: type:'{strt}' = {strt}")
-#endregion
+    if (strt is None) or (len(strt) == 0): return default_start_time()
+    # If dt is a valid ISO string, return it, else raise ValueError
+    if validate_iso_date_string(strt): return strt
+    #endregion
 
 #region validate_stop()
 def validate_stop(strt: str, stp: str) -> str:
     """Validate stop time for ActivityEntry constructor."""
     # Returns a valid ISO format date string for the stop time
     # Uses strt to determine the default stop time if stp is None or invalid
-    # If stp is not type str, raise TypeError
-    # If stp is None or empty string, default to time now
-    # If stp is valid ISO string, return it
     # If either strt or stp are not type str}None, raise TypeError
     # If strt or stp are type str but not valid ISO strings, raise ValueError
-    typenames = (None, str)
-    if isinstance(strt, (type(None), str)):
-        s = validate_start(strt) # ValueError raised if invalid strt
-    else:
-        raise TypeError(f"type:str required for strt, not type: {type(strt).__name__}")
-    if isinstance(stp, (type(None), str)):
+    # If stp is not type None or str, raise TypeError
+    typenames = (type(None), str)
+    s = validate_start(strt) # ValueError raised if invalid strt
+    # If stp is None or empty string, default to time now
+    if isinstance(stp, typenames):
         if (stp is None) or (len(stp) == 0): return default_stop_time(s)
-        if validate_iso_date_string(stp):
-            return datetime.datetime.fromisoformat(stp).isoformat()
+        # If stp is valid ISO string, return it
+        if validate_iso_date_string(stp): return stp
     else:
         raise TypeError(f"type:str required for stp, not type: {type(stp).__name__}")
 #endregion
 
 #region increase_time()
-def increase_time(tval : str, hours : int = 0, minutes : int = 0, seconds : int = 0) -> float:
+def increase_time(tval : str=now_iso_date_string(), hours : int = 0, \
+                  minutes : int = 0, seconds : int = 0) -> float:
     """Increase the time by a given number of hours, minutes and seconds."""
-    if tval is None or not isinstance(tval, str) or len(tval) == 0:
-        raise ValueError("Cannot increase time for None or empty string")
-    dt = iso_date(tval)
-    delta = datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds)
-    new_dt = dt + delta
-    return iso_date_string(new_dt)
+    # TODO: handle leap year offset
+    if not isinstance(tval, str):
+        t = type(tval).__name__
+        raise TypeError(f"type:str required for tval, not type: {t}")
+    validate_iso_date_string(tval) # raises ValueError if invalid
+    try:
+        dt = iso_date(tval)
+        delta = datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds)
+        new_dt = dt + delta
+        return iso_date_string(new_dt)
+    except TypeError:
+        raise
 #endregion
 
 #region increase_time()
-def decrease_time(tval : str, hours : int = 0, minutes : int = 0, seconds : int = 0) -> float:
+def decrease_time(tval : str=now_iso_date_string(), hours : int = 0, \
+                  minutes : int = 0, seconds : int = 0) -> float:
     """Decrease the time by a given number of hours, minutes and seconds."""
-    if tval is None or not isinstance(tval, str) or len(tval) == 0:
-        raise ValueError("Cannot decrease time for None or empty string")
-    hours = to_int(hours) # convert to int
-    minutes = to_int(minutes)
-    seconds = to_int(seconds)
-    dt = iso_date(tval)
-    delta = datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds)
-    new_dt = dt - delta
-    return iso_date_string(new_dt)
+    # TODO: handle leap year offset
+    if not isinstance(tval, str):
+        t = type(tval).__name__
+        raise TypeError(f"type:str required for tval, not type: {t}")
+    validate_iso_date_string(tval) # raises ValueError if invalid
+    # hours = to_int(hours) # convert to int
+    # minutes = to_int(minutes)
+    # seconds = to_int(seconds)
+    try:
+        dt = iso_date(tval)
+        delta = datetime.timedelta(hours=abs(hours), minutes=abs(minutes), \
+                                   seconds=abs(seconds))
+        new_dt = dt - delta
+        return iso_date_string(new_dt)
+    except TypeError:
+        raise
 #endregion
 
 #region calculate_duration()

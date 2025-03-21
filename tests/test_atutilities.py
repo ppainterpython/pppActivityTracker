@@ -82,6 +82,22 @@ def test_iso_date():
         atu.iso_date(2500.56) # float
 #endregion
 
+#region test_validate_iso_date_string()
+def test_validate_iso_date_string():
+    valid_iso_date = "2025-01-20T13:00:00"
+    invalid_iso_date = "invalid-date-format"
+    assert atu.validate_iso_date_string(valid_iso_date), \
+        f"Valid ISO date '{valid_iso_date}' failed validation"
+    with pytest.raises(ValueError):
+        atu.validate_iso_date_string(invalid_iso_date)
+    # Test with invalid type of input
+    with pytest.raises(TypeError) : atu.validate_iso_date_string(None)
+    with pytest.raises(TypeError) : atu.validate_iso_date_string("")
+    with pytest.raises(TypeError) : atu.validate_iso_date_string(12345)
+    with pytest.raises(TypeError) : atu.validate_iso_date_string((1,2,3,4,5))
+    with pytest.raises(TypeError) : atu.validate_iso_date_string([1,2,3,4,5])
+#endregion
+
 #region test_now_iso_date()
 def test_now_iso_date():
     """Test the now_iso_date function."""
@@ -176,6 +192,8 @@ def test_to_float():
 #endregion test_to_float()
 #endregion ISO Date Utilities
 
+#region Timestamp Helper Functions
+
 #region test_validate_start()
 def test_validate_start():
     """Test None, "", invalid ISO, and tuple as input to AE.validate_start()"""
@@ -189,18 +207,24 @@ def test_validate_start():
     # Test valid start time
     assert atu.validate_start(valid_start) == valid_start
 
-    # Test empty string for start time, expect conversion to default of now()
-
     # Test invalid start time string value, not valid ISO value
-    with pytest.raises(ValueError):
+    excmsg = "Invalid ISO datetime str value:"
+    with pytest.raises(ValueError, match=excmsg) as excinfo:
         atu.validate_start(invalid_start)
 
     # Test invalid input type None start time, expect validate_start() to 
     # return now(), so the comparison should be within 2 seconcds.
-    assert atu.iso_date_approx(atu.validate_start(None), atu.now_iso_date_string(), 2)
+    assert atu.iso_date_approx(atu.validate_start(None), \
+                               atu.now_iso_date_string(), 2)
 
-    # Test invalid input type tuple start time
-    with pytest.raises(TypeError):
+    # Test invalid input type "" start time, expect validate_start() to 
+    # return now(), so the comparison should be within 2 seconcds.
+    assert atu.iso_date_approx(atu.validate_start(""), \
+                               atu.now_iso_date_string(), 2)
+
+    # Test invalid input type tuple as start time
+    excmsg = "Invalid type for strt input value:"
+    with pytest.raises(TypeError,match=excmsg):
         atu.validate_start((1,2))
 #endregion
 
@@ -209,40 +233,212 @@ def test_validate_stop():
     # Assuming validate_stop is a static method of ActivityEntry class
     valid_start : str = atu.default_start_time() 
     valid_stop : str = atu.default_stop_time(valid_start)
-    invalid_stop = "invalid-date-format"
+    invalid_time = "invalid-date-format"
 
     # Test valid stop time 
     assert atu.validate_stop(valid_start, valid_stop) == valid_stop, \
-        "Valid stop time failed validation"
+        f"Valid stop time: '{valid_stop}' failed validation"
 
-    # Test invalid stop time string value
+    # Test invalid stop time with invalid ISO format string value
     with pytest.raises(ValueError):
-        atu.validate_stop(valid_start, invalid_stop)
+        atu.validate_stop(valid_start, invalid_time)
+    # Test invalid start time with invalid ISO format string value
+    with pytest.raises(ValueError):
+        atu.validate_stop(invalid_time, valid_stop)
 
     # Test invalid input type None stop time
     # Expect validate_stop() to return default_stop_time()
-    assert atu.validate_stop(valid_start, None), "stop time of None failed validation"
+    assert atu.validate_stop(valid_start, None), \
+        "stop time of None failed validation"
+    # Test invalid input type None start time
+    # Expect validate_stop() to return default_stop_time()
+    assert atu.validate_stop(None, valid_stop), \
+        "start time of None failed validation"
+
+    # Test invalid input type "" stop time
+    # Expect validate_stop() to return default_stop_time()
+    assert atu.validate_stop(valid_start, ""), \
+        "stop time of \"\" failed validation"
+    # Test invalid input type """ start time
+    # Expect validate_stop() to return default_stop_time()
+    assert atu.validate_stop("", valid_stop), \
+        "start time of \"\" failed validation"
 
     # Test invalid input type tuple stop time
     with pytest.raises(TypeError):
         atu.validate_stop(valid_start, (1,2))
+    # Test invalid input type tuple start time
+    with pytest.raises(TypeError):
+        atu.validate_stop((1,2), valid_stop)
 #endregion
 
-#region test_validate_iso_date_string()
-def test_validate_iso_date_string():
-    valid_iso_date = "2025-01-20T13:00:00"
-    invalid_iso_date = "invalid-date-format"
-    assert atu.validate_iso_date_string(valid_iso_date), \
-        f"Valid ISO date '{valid_iso_date}' failed validation"
+#region test_increase_time()
+def test_increase_time():
+    """Test the increase_time function."""
+    # Initially generated by GitHub Copilot, but took some work to complete
+
+    # Test valid increase by hours
+    initial_time = "2025-01-20T13:00:00"
+    expected_time = "2025-01-20T14:00:00"
+    assert atu.increase_time(tval=initial_time, hours=1) == expected_time, \
+        f"Expected {expected_time} but got {atu.increase_time(tval=initial_time, hours=1)}"
+
+    # Test increase by minutes
+    expected_time = "2025-01-20T13:30:00"
+    assert atu.increase_time(tval=initial_time, minutes=30) == expected_time, \
+        f"Expected {expected_time} but got {atu.increase_time(tval=initial_time, minutes=30)}"
+
+    # Test increase by seconds
+    expected_time = "2025-01-20T13:00:30"
+    assert atu.increase_time(tval=initial_time, seconds=30) == expected_time, \
+        f"Expected {expected_time} but got {atu.increase_time(tval=initial_time, seconds=30)}"
+
+    # Test invalid time format
+    invalid_time = "invalid-time-format"
     with pytest.raises(ValueError):
-        atu.validate_iso_date_string(invalid_iso_date)
-    # Test with invalid type of input
-    with pytest.raises(TypeError) : atu.validate_iso_date_string(None)
-    with pytest.raises(TypeError) : atu.validate_iso_date_string("")
-    with pytest.raises(TypeError) : atu.validate_iso_date_string(12345)
-    with pytest.raises(TypeError) : atu.validate_iso_date_string((1,2,3,4,5))
-    with pytest.raises(TypeError) : atu.validate_iso_date_string([1,2,3,4,5])
-#endregion
+        atu.increase_time(tval=invalid_time, hours=1)
 
+    # Test invalid time type
+    invalid_time = None
+    with pytest.raises(TypeError):
+        atu.increase_time(tval=invalid_time, hours=1)
 
+    # Test invalid time type
+    invalid_time = (2,3,4)
+    with pytest.raises(TypeError):
+        atu.increase_time(tval=invalid_time, hours=1)
+
+    # Test invalid time format value
+    invalid_time = ""
+    with pytest.raises(TypeError):
+        atu.increase_time(tval=invalid_time, hours=1)
+
+    # Test invalid increase format
+    invalid_increase = "invalid-increase-format"
+    with pytest.raises(TypeError):
+        atu.increase_time(tval=initial_time, hours=invalid_increase)
+
+    # Test increase by negative time
+    expected_time = "2025-01-20T12:00:00"
+    assert atu.increase_time(tval=initial_time, hours=-1) == expected_time, \
+        f"Expected {expected_time} but got {atu.increase_time(tval=initial_time, hours=-1)}"
+
+    # Test increase by zero time
+    expected_time = initial_time
+    assert atu.increase_time(tval=initial_time, hours=0, minutes=0, seconds=0) == expected_time, \
+        f"Expected {expected_time} but got {atu.increase_time(tval=initial_time, hours=0, minutes=0, seconds=0)}"
+
+    # Test increase crossing over to next day
+    initial_time = "2025-01-20T23:30:00"
+    expected_time = "2025-01-21T00:30:00"
+    assert atu.increase_time(tval=initial_time, hours=1) == expected_time, \
+        f"Expected {expected_time} but got {atu.increase_time(tval=initial_time, hours=1)}"
+
+    # Test increase crossing over to next month
+    initial_time = "2025-01-31T23:30:00"
+    expected_time = "2025-02-01T00:30:00"
+    assert atu.increase_time(tval=initial_time, hours=1) == expected_time, \
+        f"Expected {expected_time} but got {atu.increase_time(tval=initial_time, hours=1)}"
+
+    # Test increase crossing over to next year
+    initial_time = "2025-12-31T23:30:00"
+    expected_time = "2026-12-31T23:30:00"
+    yearhours = 24 * 365
+    assert atu.increase_time(tval=initial_time, hours=yearhours) == expected_time, \
+        f"Expected {expected_time} but got {atu.increase_time(tval=initial_time, hours=1)}"
+#endregion test_increase_time()
+
+#region test_decrease_time()
+def test_decrease_time():
+    """Test the increase_time function."""
+    # Initially generated by GitHub Copilot, but took some work to complete
+
+    # Test valid decrease by hours
+    initial_time = "2025-01-20T13:00:00"
+    expected_time = "2025-01-20T12:00:00"
+    assert atu.decrease_time(tval=initial_time, hours=1) == expected_time, \
+        f"Expected {expected_time} but got {atu.decrease_time(tval=initial_time, hours=1)}"
+
+    # Test decrease by minutes
+    expected_time = "2025-01-20T12:30:00"
+    assert atu.decrease_time(tval=initial_time, minutes=30) == expected_time, \
+        f"Expected {expected_time} but got {atu.decrease_time(tval=initial_time, minutes=30)}"
+
+    # Test decrease by seconds
+    expected_time = "2025-01-20T12:59:30"
+    assert atu.decrease_time(tval=initial_time, seconds=30) == expected_time, \
+        f"Expected {expected_time} but got {atu.decrease_time(tval=initial_time, seconds=30)}"
+
+    # Test invalid time format
+    invalid_time = "invalid-time-format"
+    with pytest.raises(ValueError):
+        atu.decrease_time(tval=invalid_time, hours=1)
+
+    # Test invalid time type
+    invalid_time = None
+    with pytest.raises(TypeError):
+        atu.decrease_time(tval=invalid_time, hours=1)
+
+    # Test invalid time type
+    invalid_time = (2,3,4)
+    with pytest.raises(TypeError):
+        atu.decrease_time(tval=invalid_time, hours=1)
+
+    # Test invalid time format value
+    invalid_time = ""
+    with pytest.raises(TypeError):
+        atu.decrease_time(tval=invalid_time, hours=1)
+
+    # Test invalid decrease format
+    invalid_increase = "invalid-increase-format"
+    with pytest.raises(TypeError):
+        atu.decrease_time(tval=initial_time, hours=invalid_increase)
+
+    # Test decrease by negative time
+    expected_time = "2025-01-20T12:00:00"
+    assert atu.decrease_time(tval=initial_time, hours=-1) == expected_time, \
+        f"Expected {expected_time} but got {atu.decrease_time(tval=initial_time, hours=-1)}"
+
+    # Test decrease by zero time
+    expected_time = initial_time
+    assert atu.decrease_time(tval=initial_time, hours=0, minutes=0, seconds=0) == expected_time, \
+        f"Expected {expected_time} but got {atu.decrease_time(tval=initial_time, hours=0, minutes=0, seconds=0)}"
+
+    # Test decrease crossing over to next day
+    initial_time = "2025-01-20T00:30:00"
+    expected_time = "2025-01-19T23:30:00"
+    assert atu.decrease_time(tval=initial_time, hours=1) == expected_time, \
+        f"Expected {expected_time} but got {atu.decrease_time(tval=initial_time, hours=1)}"
+
+    # Test decrease crossing over to next month
+    initial_time = "2025-02-01T00:30:00"
+    expected_time = "2025-01-31T23:30:00"
+    assert atu.decrease_time(tval=initial_time, hours=1) == expected_time, \
+        f"Expected {expected_time} but got {atu.decrease_time(tval=initial_time, hours=1)}"
+
+    # Test decrease crossing over to next year
+    # TODO: Handle leap year offset
+    initial_time = "2026-01-01T23:30:00"
+    expected_time = "2025-01-01T23:30:00"
+    yearhours = 24 * 365
+    assert atu.decrease_time(tval=initial_time, hours=yearhours) == expected_time, \
+        f"Expected {expected_time} but got {atu.decrease_time(tval=initial_time, hours=1)}"
+#endregion test_decrease_time()
+
+#region test_calculate_duration()
+#endregion test_calculate_duration()
+
+#region test_default_duration()
+#endregion test_default_duration()
+
+#region test_default_start_time()
+#endregion test_default_start_time()
+
+#region test_default_stop_time()
+#endregion test_default_stop_time()
+
+#region test_current_timestamp()
+#endregion test_current_timestamp()
+
+#endregion Timestamp Helper Functions
 
