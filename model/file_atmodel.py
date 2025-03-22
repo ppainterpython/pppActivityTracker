@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------+
 # file_atmodel.py
-import getpass, json
+import getpass, json, pathlib
 from dataclasses import dataclass, field, asdict
 from abc import ABC, abstractmethod
 from typing import List
@@ -52,27 +52,38 @@ class FileATModel(ATModel):
     # Private Property attributes
     #-------------------------------------------------------------------------+
     # For ATModel abstract base class property values
-    __activityname: str = ""
-    __activities: List[ActivityEntry]
-    __created_date: str = None
-    __last_modified_date: str = None
-    __modified_by: str = ""
+    activityname: str = ""
+    activities: List[ActivityEntry]
+    created_date: str = None
+    last_modified_date: str = None
+    modified_by: str = ""
     # For FileATModel sub-class property values
-    __filename: str = "activity-tracking.json"  # default filename for saving
-    __folderpath: str = "."  # default folder path for saving
+    filepath: str = "activity-tracking.json"  # default filepath for saving
     #-------------------------------------------------------------------------+
     # class constructor
     #-------------------------------------------------------------------------+
-    def __init__(self, an: str):
-        """Constructor for class FileATModel"""
-        self.__activityname = an
-        self.__activities = []
-        self.__created_date = FileATModel.default_creation_date()
-        self.__last_modified_date = self.__created_date
-        self.__modified_by = getpass.getuser()        
+    def __init__(self, activityname, activities=None, created_date=None, \
+                 last_modified_date=None, modified_by=None, filepath=None):
+        self.activityname = activityname
+        self.activities = activities if activities is not None else []
+        self.created_date = created_date if created_date is not None else "2025-03-22T14:42:49.300051"
+        self.last_modified_date = last_modified_date if last_modified_date is not None else "2025-03-22T14:42:49.301397"
+        self.modified_by = modified_by if modified_by is not None else "ppain"
+        self.filepath = filepath if filepath is not None else "activity-tracking.json"
+
+    def to_dict(self):
+        return {
+            "activityname": self.activityname,
+            "activities": self.activities,
+            "created_date": self.created_date,
+            "last_modified_date": self.last_modified_date,
+            "modified_by": self.modified_by,
+            "filename": self.filename,
+            "folderpath": self.folderpath
+        }
 
     def __str__(self):
-        return f"ActivityEntry(activityname='{self.__activityname}')"
+        return f"ActivityEntry(activityname='{self.activityname}')"
     #endregion FileATModel Class  
 
     #-------------------------------------------------------------------------+
@@ -80,67 +91,55 @@ class FileATModel(ATModel):
     #-------------------------------------------------------------------------+
     @property
     def activityname(self) -> str:
-        return self.__activityname
+        return self._activityname
     
     @activityname.setter
     def activityname(self, value: str) -> None:
-        self.__activityname = value
+        self._activityname = value
 
     @property
     def activities(self) -> List[ActivityEntry]:
-        return self.__activities
+        return self._activities
     
     @activities.setter
     def activities(self, value: List[ActivityEntry]) -> None:
-        self.__activities = value
+        self._activities = value
 
     @property
     def created_date(self) -> str:
-        return self.__created_date
+        return self._created_date
     
     @created_date.setter
     def created_date(self, value: str) -> None:
-        self.__created_date = value
-
-    @created_date.setter
-    def created_date(self, value: str) -> str:
-        return self.__created_date
+        self._created_date = value
 
     @property
     def last_modified_date(self) -> str:
-        return self.__last_modified_date
+        return self._last_modified_date
     
     @last_modified_date.setter
     def last_modified_date(self, value: str) -> None:
-        self.__last_modified_date = value
+        self._last_modified_date = value
 
     @property
     def modified_by(self) -> str:
-        return self.__modified_by
+        return self._modified_by
     
     @modified_by.setter
     def modified_by(self, value: str) -> None:
-        self.__modified_by = value
+        self._modified_by = value
     #endregion
 
     #-------------------------------------------------------------------------+
     #region FileATModel Properties (specific to FileATModel class)
     #-------------------------------------------------------------------------+
     @property
-    def filename(self) -> str:
-        return self.__filename
+    def filepath(self) -> str:
+        return self._filepath
     
-    @filename.setter
-    def filename(self, value: str) -> None:
-        self.__filename = value
-
-    @property
-    def folderpath(self) -> str:
-        return self.__folderpath
-    
-    @folderpath.setter
-    def folderpath(self, value: str) -> None:
-        self.__folderpath = value
+    @filepath.setter
+    def filepath(self, value: str) -> None:
+        self._filepath = value
     #endregion
 
     #-------------------------------------------------------------------------+
@@ -149,21 +148,19 @@ class FileATModel(ATModel):
     def add_activity(self, ae: ActivityEntry) -> ActivityEntry:
         """ FileATModel.add_activity() - concrete impl for ABC method, 
             add an ActivityEntry to the activities list"""
-        self.__activities.append(ae)
-        self.__modified_by = getpass.getuser()
-        self.__last_modified_date = atu.current_timestamp()
+        self.activities.append(ae)
+        self.modified_by = getpass.getuser()
+        self.last_modified_date = atu.current_timestamp()
         return ae
 
     def put_atmodel(self, filepath:str = None) -> bool:
         """ Save the current activity model to a .json file """
         # filepath is the pathname to a file and must be a str.
         # If filepath is None or "", the default filename is used.
-        # Raises ValueError or TypeError as appropriate.
-        if not isinstance(filepath, (type(None), str)):
-            raise TypeError("parameter filepath must be a string or None")
-        if filepath is None: filepath = FileATModel.default_activity_filename()
-        with open(filepath, 'w') as file:
+        # Raises TypeError as appropriate.
+        with open(self.validate_filepath(filepath), 'w') as file:
             data = asdict(self)
+            data['activities'] = [asdict(ae) for ae in self.activities]
             json.dump(data, file, indent=4)
         return True
 
@@ -172,16 +169,29 @@ class FileATModel(ATModel):
         # filepath is the pathname to a file and must be a str.
         # If filepath is None or "", the default filename is used.
         # Raises ValueError or TypeError as appropriate.
-        if not isinstance(filepath, (type(None), str)):
-            raise TypeError("parameter filepath must be a string or None")
-        if filepath is None: filepath = FileATModel.default_activity_filename()
-        with open(filepath, 'r') as file:
+        with open(self.validate_filepath(filepath), 'r') as file:
             data = json.load(file)
             self.__activityname = data['activityname']
-            self.__activities = [ActivityEntry(**ae) for ae in data['activities']]
-            self.__created_date = data['created_date']
-            self.__last_modified_date = data['last_modified_date']
-            self.__modified_by = data['modified_by']
+            self.activities = [ActivityEntry(**ae) for ae in data['activities']]
+            self.created_date = data['created_date']
+            self.last_modified_date = data['last_modified_date']
+            self.modified_by = data['modified_by']
+
+    def validate_filepath(self, filepath:str) -> pathlib.Path:
+        """ Validate the provided activity filepath """
+        my_fp = filepath
+        if my_fp is None:
+            my_fp = pathlib.Path(FileATModel.default_activity_filename())
+        if isinstance(my_fp, str) and len(my_fp) == 0 : 
+            my_fp = pathlib.Path(FileATModel.default_activity_filename())
+        else:
+            my_fp = pathlib.Path(my_fp)
+        if not isinstance(my_fp, pathlib.Path):
+            t = type(my_fp).__name__
+            rt = type(pathlib.Path).__name__
+            m = f"filepath must be type:'{rt}', not type:'{t}'"
+            raise TypeError(m)
+        return my_fp
     #endregion
 
     #-------------------------------------------------------------------------+
@@ -191,11 +201,6 @@ class FileATModel(ATModel):
     def default_creation_date() -> str:
         """ Return the current date and time as a ISO format string """
         return atu.now_iso_date_string()
-
-    @staticmethod
-    def default_activity_filename() -> str:
-        """ Return the default filename for a activity file """
-        return FATM_DEFAULT_FILENAME
 
     #endregion
 

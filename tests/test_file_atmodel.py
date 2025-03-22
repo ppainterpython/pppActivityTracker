@@ -1,12 +1,18 @@
 #-----------------------------------------------------------------------------+
-import getpass, pathlib
+import getpass, pathlib, logging
 import at_utilities.at_utils as atu
 from model.atmodelconstants import TE_DEFAULT_DURATION, TE_DEFAULT_DURATION_SECONDS
 from model.ae import ActivityEntry
+from model.base_atmodel.atmodel import ATModel
 from model.file_atmodel import FileATModel
 from model.file_atmodel import FATM_DEFAULT_FILENAME
 
 FATM_TEMPDATA_DIR = "tests/tempdata"
+FATM_FILENAME = "activity.json"  # default filename for saving
+
+# Configure logging
+# logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
 
 #region test_atmodel_constructor()
 def test_atmodel_constructor():
@@ -24,14 +30,16 @@ def test_atmodel_constructor():
     assert am.__str__() == f"ActivityEntry(activityname='{an}')", "String representation of FileATModel is incorrect"
 #endregion
 
+#region test_atmodel_default_filename()
 def test_atmodel_add_activity():
     """Test the add_activity method for FileATModel class"""
     """This test creates three ActivityEntry objects, adds them to the 
     FileATModel instance, saves to a temp data file, and then reads
     the file back for comparison. Temporary files are placed in the 
     folder tests/tempdata"""
+    logging.debug("Starting test_atmodel_add_activity()")
     un = getpass.getuser()
-    an = un + "activity"
+    an = un + "_activity"
     # TODO: ae1.duration is float hours, but dur is minutes.
     default_dur_hours : float = atu.default_duration() # hours
     int_dur_minutes : int = int(default_dur_hours * 60) # convert to minutes
@@ -63,23 +71,83 @@ def test_atmodel_add_activity():
     assert ae3.duration == default_dur_hours, "ae3 duration is incorrect"
     assert str(ae3) == activity3, "String representation of ActivityEntry ae3 is not correct"
 
-    assert (atm := FileATModel(an)) is not None
-    assert atm is not None, "creating ATModel instance failed"
+    assert (atm := FileATModel(an)) is not None, "creating FileATModel instance failed"
+    assert isinstance(atm, FileATModel), \
+        f"FileATModel() returned type:'{type(atm).__name__}' "
+    assert isinstance(atm, ATModel), \
+        f"FileATModel() returned type:'{type(atm).__name__}' "
 
     assert atm.add_activity(ae1) is not None
     assert len(atm.activities) == 1, \
-        "add_activity failed to add ae1 object to activites"
+        "add_activity() failed to add 1st ActivityEntry instance to activites"
     assert atm.add_activity(ae2) is not None
     assert len(atm.activities) == 2, \
-        "add_activity failed to add ae2 object to activites"
+        "add_activity() failed to add 2nd ActivityEntry instance to activites"
     assert atm.add_activity(ae3) is not None
     assert len(atm.activities) == 3, \
-        "add_activity failed to add ae3 object to activites"
+        "add_activity() failed to add 3rd ActivityEntry instance to activites"
 
-    # Save the created ATM object with 3 activities to a file using FileATModel.
+    # Save the created FATM object with 3 activities to a file using FileATModel.
     folder_path = pathlib.Path(FATM_TEMPDATA_DIR)
-    file_name = FileATModel.default_activity_filename()
+    file_name = FATM_FILENAME
     full_path = folder_path / file_name
     full_path.parent.mkdir(parents=True, exist_ok=True)
     assert atm.put_atmodel(full_path) is True, \
         f"put_atmodel failed to save to file {full_path}"
+
+    # Read the file back into a new FileATModel instance
+    new_atm = FileATModel(an)
+    assert new_atm is not None, "creating FileATModel instance failed"
+    assert new_atm.get_atmodel(full_path) is None, \
+        f"get_atmodel failed to load from file {full_path}"
+    
+    # Validate the new_atm object
+    assert new_atm.activityname == an, \
+        f"get_atmodel activityname is incorrect: {new_atm.activityname}"
+    assert len(new_atm.activities) == 3, \
+        f"get_atmodel activities length is incorrect: {len(new_atm.activities)}"
+    assert new_atm.activities[0].activity == ae1.activity, \
+        f"get_atmodel activities[0] activity is incorrect: {new_atm.activities[0].activity}"
+    assert new_atm.activities[1].activity == ae2.activity, \
+        f"get_atmodel activities[1] activity is incorrect: {new_atm.activities[1].activity}"
+    assert new_atm.activities[2].activity == ae3.activity, \
+        f"get_atmodel activities[2] activity is incorrect: {new_atm.activities[2].activity}"
+    assert new_atm.activities[0].start == ae1.start, \
+        f"get_atmodel activities[0] start time is incorrect: {new_atm.activities[0].start}" 
+    assert new_atm.activities[1].start == ae2.start, \
+        f"get_atmodel activities[1] start time is incorrect: {new_atm.activities[1].start}"
+    assert new_atm.activities[2].start == ae3.start, \
+        f"get_atmodel activities[2] start time is incorrect: {new_atm.activities[2].start}"
+    assert new_atm.activities[0].stop == ae1.stop, \
+        f"get_atmodel activities[0] stop time is incorrect: {new_atm.activities[0].stop}"
+    assert new_atm.activities[1].stop == ae2.stop, \
+        f"get_atmodel activities[1] stop time is incorrect: {new_atm.activities[1].stop}"
+    assert new_atm.activities[2].stop == ae3.stop, \
+        f"get_atmodel activities[2] stop time is incorrect: {new_atm.activities[2].stop}"
+    assert new_atm.activities[0].duration == ae1.duration, \
+        f"get_atmodel activities[0] duration is incorrect: {new_atm.activities[0].duration}"
+    assert new_atm.activities[1].duration == ae2.duration, \
+        f"get_atmodel activities[1] duration is incorrect: {new_atm.activities[1].duration}"
+    assert new_atm.activities[2].duration == ae3.duration, \
+        f"get_atmodel activities[2] duration is incorrect: {new_atm.activities[2].duration}"
+    assert new_atm.created_date == atm.created_date, \
+        f"get_atmodel created_date is incorrect: {new_atm.created_date}"
+    assert new_atm.last_modified_date == atm.last_modified_date, \
+        f"get_atmodel last_modified_date is incorrect: {new_atm.last_modified_date}"
+    assert new_atm.modified_by == atm.modified_by, \
+        f"get_atmodel modified_by is incorrect: {new_atm.modified_by}"
+    assert new_atm.modified_by == un, \
+        f"get_atmodel modified_by is incorrect: {new_atm.modified_by}"
+    assert new_atm.__str__() == atm.__str__(), \
+        f"get_atmodel string representation is incorrect: {new_atm.__str__()}"
+    assert new_atm.__str__() == f"ActivityEntry(activityname='{an}')", \
+        "String representation of FileATModel is incorrect"
+    # Clean up the temporary file
+    try:
+        full_path.unlink()
+    except Exception as e:
+        logging.error(f"Failed to delete file {full_path}: {e}")
+        raise
+    logging.debug("Completed test_atmodel_add_activity()")
+#endregion
+#-----------------------------------------------------------------------------+
