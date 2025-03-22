@@ -9,6 +9,8 @@ from model.ae import ActivityEntry
 from model.base_atmodel.atmodel import ATModel
 from model.atmodelconstants import TE_DEFAULT_DURATION, TE_DEFAULT_DURATION_SECONDS
 
+FATM_DEFAULT_FILENAME = "activity.json"  # default filename for saving
+
 @dataclass(kw_only=True)
 class FileATModel(ATModel):
     """
@@ -151,21 +153,49 @@ class FileATModel(ATModel):
         self.__modified_by = getpass.getuser()
         self.__last_modified_date = atu.current_timestamp()
         return ae
+
+    def put_atmodel(self, filepath:str = None) -> bool:
+        """ Save the current activity model to a .json file """
+        # filepath is the pathname to a file and must be a str.
+        # If filepath is None or "", the default filename is used.
+        # Raises ValueError or TypeError as appropriate.
+        if not isinstance(filepath, (type(None), str)):
+            raise TypeError("parameter filepath must be a string or None")
+        if filepath is None: filepath = FileATModel.default_activity_filename()
+        with open(filepath, 'w') as file:
+            data = asdict(self)
+            json.dump(data, file, indent=4)
+        return True
+
+    def get_atmodel(self, filepath:str) -> None:
+        """ Load the activity model from a .json file """
+        # filepath is the pathname to a file and must be a str.
+        # If filepath is None or "", the default filename is used.
+        # Raises ValueError or TypeError as appropriate.
+        if not isinstance(filepath, (type(None), str)):
+            raise TypeError("parameter filepath must be a string or None")
+        if filepath is None: filepath = FileATModel.default_activity_filename()
+        with open(filepath, 'r') as file:
+            data = json.load(file)
+            self.__activityname = data['activityname']
+            self.__activities = [ActivityEntry(**ae) for ae in data['activities']]
+            self.__created_date = data['created_date']
+            self.__last_modified_date = data['last_modified_date']
+            self.__modified_by = data['modified_by']
     #endregion
 
     #-------------------------------------------------------------------------+
     #region FileATModel Methods (specific to FileATModel class)
     #-------------------------------------------------------------------------+
-    def save_atmodel(self, fp:str,fn:str) -> None:
-        """ Save the current activity model to a .json file """
-        with open(fp, 'w') as f:
-            data = asdict(self)
-            json.dump(data, f, indent=4)
-
     @staticmethod
     def default_creation_date() -> str:
         """ Return the current date and time as a ISO format string """
         return atu.now_iso_date_string()
+
+    @staticmethod
+    def default_activity_filename() -> str:
+        """ Return the default filename for a activity file """
+        return FATM_DEFAULT_FILENAME
 
     #endregion
 

@@ -1,9 +1,12 @@
 #-----------------------------------------------------------------------------+
-import getpass, pytest
+import getpass, pathlib
 import at_utilities.at_utils as atu
 from model.atmodelconstants import TE_DEFAULT_DURATION, TE_DEFAULT_DURATION_SECONDS
 from model.ae import ActivityEntry
 from model.file_atmodel import FileATModel
+from model.file_atmodel import FATM_DEFAULT_FILENAME
+
+FATM_TEMPDATA_DIR = "tests/tempdata"
 
 #region test_atmodel_constructor()
 def test_atmodel_constructor():
@@ -23,8 +26,12 @@ def test_atmodel_constructor():
 
 def test_atmodel_add_activity():
     """Test the add_activity method for FileATModel class"""
-    """This test creates three ActivityEntry objects and adds them to the FileATModel instance."""
-    an = "painterActivity"
+    """This test creates three ActivityEntry objects, adds them to the 
+    FileATModel instance, saves to a temp data file, and then reads
+    the file back for comparison. Temporary files are placed in the 
+    folder tests/tempdata"""
+    un = getpass.getuser()
+    an = un + "activity"
     # TODO: ae1.duration is float hours, but dur is minutes.
     default_dur_hours : float = atu.default_duration() # hours
     int_dur_minutes : int = int(default_dur_hours * 60) # convert to minutes
@@ -56,14 +63,23 @@ def test_atmodel_add_activity():
     assert ae3.duration == default_dur_hours, "ae3 duration is incorrect"
     assert str(ae3) == activity3, "String representation of ActivityEntry ae3 is not correct"
 
-    atm = FileATModel(an)
-    assert atm != None, "creating ATModel instance faile"
+    assert (atm := FileATModel(an)) is not None
+    assert atm is not None, "creating ATModel instance failed"
 
-    atm.add_activity(ae1)
-    assert len(atm.activities) == 1, "add_activity failed to add ae1 object to activites"
-    atm.add_activity(ae2)
-    assert len(atm.activities) == 2, "add_activity failed to add ae2 object to activites"
-    atm.add_activity(ae3)
-    assert len(atm.activities) == 3, "add_activity failed to add ae3 object to activites"
+    assert atm.add_activity(ae1) is not None
+    assert len(atm.activities) == 1, \
+        "add_activity failed to add ae1 object to activites"
+    assert atm.add_activity(ae2) is not None
+    assert len(atm.activities) == 2, \
+        "add_activity failed to add ae2 object to activites"
+    assert atm.add_activity(ae3) is not None
+    assert len(atm.activities) == 3, \
+        "add_activity failed to add ae3 object to activites"
 
-    # atm.save_atmodel("test.json", "test.json")
+    # Save the created ATM object with 3 activities to a file using FileATModel.
+    folder_path = pathlib.Path(FATM_TEMPDATA_DIR)
+    file_name = FileATModel.default_activity_filename()
+    full_path = folder_path / file_name
+    full_path.parent.mkdir(parents=True, exist_ok=True)
+    assert atm.put_atmodel(full_path) is True, \
+        f"put_atmodel failed to save to file {full_path}"
