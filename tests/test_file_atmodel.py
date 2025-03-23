@@ -1,21 +1,17 @@
 #-----------------------------------------------------------------------------+
-import getpass, pathlib, logging
-from dataclasses import dataclass, field, asdict
+import getpass, pathlib, logging, pytest
+# from dataclasses import dataclass, field, asdict
 import at_utilities.at_utils as atu
 from model.atmodelconstants import TE_DEFAULT_DURATION, TE_DEFAULT_DURATION_SECONDS
 from model.ae import ActivityEntry
 from model.base_atmodel.atmodel import ATModel
 from model.file_atmodel import FileATModel
-from model.file_atmodel import FATM_DEFAULT_FILENAME
+from model.file_atmodel import FATM_DEFAULT_ACTIVITY_STORE_URI
 
 FATM_TEMPDATA_DIR = "tests/tempdata"
+FATM_TEMPDATA_FILENAME = FATM_DEFAULT_ACTIVITY_STORE_URI  # temp data filename
 FATM_TESTDATA_DIR = "tests/testdata"
-FATM_FILENAME = "activity.json"  # default filename for saving
-FATM_TESTDATA_FILENAME = "test_activity.json"  # default testdata filename for saving
-
-# Configure logging
-# logging.basicConfig(level=logging.DEBUG, format='%(asctime.s - %(levelname)s - %(message)s')
-
+FATM_TESTDATA_FILENAME = "test_activity.json"  # test data filename
 
 #region test_atmodel_constructor()
 def test_atmodel_constructor():
@@ -92,7 +88,7 @@ def test_atmodel_add_activity():
 
     # Save the created FATM object with 3 activities to a file using FileATModel.
     folder_path = pathlib.Path(FATM_TEMPDATA_DIR)
-    file_name = FATM_FILENAME
+    file_name = FATM_TEMPDATA_FILENAME
     full_path = folder_path / file_name
     full_path.parent.mkdir(parents=True, exist_ok=True)
     assert atm.put_atmodel(full_path) is True, \
@@ -155,6 +151,56 @@ def test_atmodel_add_activity():
 #endregion
 
 #region test_validate_activity_store_uri()
+def test_validate_activity_store_uri():
+    """Test the validate_activity_store_uri method for FileATModel class"""
+    logging.debug("Starting test_validate_activity_store_uri()")
+
+    valid_uris = [
+        "valid_path.json",
+        "another_valid_path.json",
+        FATM_DEFAULT_ACTIVITY_STORE_URI
+    ]
+
+    recoverable_uris = [
+        None,  # None value
+        ""     # empty string
+    ]
+
+    invalid_uris = [
+        123,  # not a string
+        [],  # list instead of string
+        {},  # dict instead of string
+    ]
+
+    for uri in valid_uris:
+        try:
+            result = FileATModel().validate_activity_store_uri(uri)
+            assert isinstance(result, pathlib.Path), \
+                f"Valid uir:'{uri}' did not return expected pathlib.Path, " + \
+                    f"got type:'{type(result)}'"
+            logging.debug(f"Valid URI '{uri}' passed validation.")
+        except Exception as e:
+            assert False, f"Valid URI '{uri}' raised an exception: {e}"
+
+    for uri in recoverable_uris:
+        try:
+            result = FileATModel().validate_activity_store_uri(uri)
+            assert isinstance(result, pathlib.Path), \
+                f"Recoverable uir:'{uri}' did not return expected pathlib.Path, " + \
+                    f"got type:'{type(result)}'"
+            logging.debug(f"Recoverable URI '{uri}' passed validation.")
+        except Exception as e:
+            assert False, f"Recoverable URI '{uri}' raised an exception: {e}"
+
+    for uri in invalid_uris:
+        try:
+            with pytest.raises(TypeError):
+                FileATModel().validate_activity_store_uri(uri)
+            logging.debug(f"Invalid URI '{uri}' passed TypeError validation.")
+        except Exception as e:
+            assert False, f"Invalid URI '{uri}' raised an unexpected exception: {e}"
+
+    logging.debug("Completed test_validate_activity_store_uri()")
 #endregion
 
 #region test_to_dict()
@@ -171,7 +217,7 @@ def test_to_dict():
     created_date = "2025-03-22T14:42:49.300051"
     last_modified_date = "2025-03-22T14:42:49.301397"
     modified_by = "ppain"
-    activity_store_uri = FATM_DEFAULT_FILENAME
+    activity_store_uri = FATM_DEFAULT_ACTIVITY_STORE_URI
 
     atm = FileATModel(
         activityname=an,
@@ -214,5 +260,17 @@ def test_get_atmodel():
     logging.debug(f"get_atmodel() returned: {new_atm}")
     logging.debug(f"Completed test_get_atmodel()")    
 #endregion
+
+#region test_default_created_date() 
+def test_default_created_date():
+    """Test the default_created_date method for FileATModel class"""
+    logging.debug("Starting test_default_created_date()")
+    expected_date = atu.now_iso_date_string()
+    result_date = FileATModel.default_creation_date()
+    assert atu.iso_date_approx(result_date, expected_date, 1), \
+        f"default_created_date() '{result_date}', " + \
+            f"not approx equal to expected_date '{expected_date}'"
+    logging.debug("Completed test_default_created_date()")
+#endregion 
 
 #-----------------------------------------------------------------------------+

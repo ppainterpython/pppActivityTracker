@@ -9,7 +9,7 @@ from model.ae import ActivityEntry
 from model.base_atmodel.atmodel import ATModel
 from model.atmodelconstants import TE_DEFAULT_DURATION, TE_DEFAULT_DURATION_SECONDS
 
-FATM_DEFAULT_FILENAME = "activity.json"  # default filename for saving
+FATM_DEFAULT_ACTIVITY_STORE_URI = "activity.json"  # default filename for saving
 
 @dataclass(kw_only=True)
 class FileATModel(ATModel):
@@ -57,7 +57,7 @@ class FileATModel(ATModel):
     created_date: str = None
     last_modified_date: str = None
     modified_by: str = ""
-    activity_store_uri: str = FATM_DEFAULT_FILENAME  # default URI for saving
+    activity_store_uri: str = FATM_DEFAULT_ACTIVITY_STORE_URI  # default URI for saving
     # For FileATModel, activity_store_uri is a pathname to a file.
     #-------------------------------------------------------------------------+
     # class constructor
@@ -69,7 +69,7 @@ class FileATModel(ATModel):
         self.created_date = created_date if created_date is not None else "2025-03-22T14:42:49.300051"
         self.last_modified_date = last_modified_date if last_modified_date is not None else "2025-03-22T14:42:49.301397"
         self.modified_by = modified_by if modified_by is not None else "ppain"
-        self.activity_store_uri = activity_store_uri if activity_store_uri is not None else FATM_DEFAULT_FILENAME
+        self.activity_store_uri = activity_store_uri if activity_store_uri is not None else FATM_DEFAULT_ACTIVITY_STORE_URI
 
     def to_dict(self):
         '''Return self FileATModel object as a dictionary, with the activities
@@ -168,7 +168,10 @@ class FileATModel(ATModel):
         return True
 
     def get_atmodel(self, activity_store_uri:str) -> None:
-        """ Load the activity model from a .json file """
+        """ Gets and populates values from a .json file store.
+            For FileATModel, activity_store_uri is a pathname to a file. 
+            Input activity_store_uri is first validated. Raises TypeError.
+        """
         # activity_store_uri is the pathname to a file and must be a str.
         # If activity_store_uri is None or "", the default filename is used.
         # Raises ValueError or TypeError as appropriate.
@@ -181,20 +184,24 @@ class FileATModel(ATModel):
             self.modified_by = data['modified_by']
 
     def validate_activity_store_uri(self, activity_store_uri:str) -> pathlib.Path:
-        """ Validate the provided activity activity_store_uri """
+        """ Validate the provided activity activity_store_uri.
+            Input of None, or "" are convereted to default uri.
+            Input str values are converted to a pathlib.Path object.
+            Raises TypeError for other types of input.
+        """
         my_fp = activity_store_uri
         if my_fp is None:
-            my_fp = pathlib.Path(FileATModel.default_activity_filename())
+            my_fp = pathlib.Path(FATM_DEFAULT_ACTIVITY_STORE_URI)
         if isinstance(my_fp, str) and len(my_fp) == 0 : 
-            my_fp = pathlib.Path(FileATModel.default_activity_filename())
-        else:
+            my_fp = pathlib.Path(FATM_DEFAULT_ACTIVITY_STORE_URI)
+        if isinstance(my_fp, str):
             my_fp = pathlib.Path(my_fp)
-        if not isinstance(my_fp, pathlib.Path):
-            t = type(my_fp).__name__
-            rt = type(pathlib.Path).__name__
-            m = f"activity_store_uri must be type:'{rt}', not type:'{t}'"
-            raise TypeError(m)
-        return my_fp
+        if isinstance(my_fp, pathlib.Path): return my_fp
+        # Must be some other type
+        t = type(my_fp).__name__
+        rt = type(pathlib.Path).__name__
+        m = f"activity_store_uri must be type:'{rt}', not type:'{t}'"
+        raise TypeError(m)
     #endregion
 
     #-------------------------------------------------------------------------+
