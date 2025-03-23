@@ -25,9 +25,17 @@ class ATViewModel(BaseATViewModel):
     the model domain, independent of the ViewModel. Provides read, write, and 
     save methods to persist the model.
     '''
+    #region ATViewModel Class
+    #-------------------------------------------------------------------------+
     atv: atview.ATView = None # Reference to the View object for AT.
     def __init__(self, atv: atview.ATView = None):
         self.atv = atv # Associate ViewModel with View
 
-    def get_filepath(self):
+    @property
+    def activity_store_uri(self):
         return "activities.json"
+    
+    @activity_store_uri.setter
+    def activity_store_uri(self, value):
+        self.activity_store_uri = value
+    #endregion ATViewModel Class
