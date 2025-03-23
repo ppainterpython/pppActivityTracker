@@ -1,5 +1,6 @@
 #-----------------------------------------------------------------------------+
 import getpass, pathlib, logging
+from dataclasses import dataclass, field, asdict
 import at_utilities.at_utils as atu
 from model.atmodelconstants import TE_DEFAULT_DURATION, TE_DEFAULT_DURATION_SECONDS
 from model.ae import ActivityEntry
@@ -8,10 +9,12 @@ from model.file_atmodel import FileATModel
 from model.file_atmodel import FATM_DEFAULT_FILENAME
 
 FATM_TEMPDATA_DIR = "tests/tempdata"
+FATM_TESTDATA_DIR = "tests/testdata"
 FATM_FILENAME = "activity.json"  # default filename for saving
+FATM_TESTDATA_FILENAME = "test_activity.json"  # default testdata filename for saving
 
 # Configure logging
-# logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+# logging.basicConfig(level=logging.DEBUG, format='%(asctime.s - %(levelname)s - %(message)s')
 
 
 #region test_atmodel_constructor()
@@ -30,7 +33,7 @@ def test_atmodel_constructor():
     assert am.__str__() == f"ActivityEntry(activityname='{an}')", "String representation of FileATModel is incorrect"
 #endregion
 
-#region test_atmodel_default_filename()
+#region test_atmodel_add_activity()
 def test_atmodel_add_activity():
     """Test the add_activity method for FileATModel class"""
     """This test creates three ActivityEntry objects, adds them to the 
@@ -96,7 +99,7 @@ def test_atmodel_add_activity():
         f"put_atmodel failed to save to file {full_path}"
 
     # Read the file back into a new FileATModel instance
-    new_atm = FileATModel(an)
+    new_atm = FileATModel(activityname=an, activity_store_uri=full_path)
     assert new_atm is not None, "creating FileATModel instance failed"
     assert new_atm.get_atmodel(full_path) is None, \
         f"get_atmodel failed to load from file {full_path}"
@@ -150,4 +153,66 @@ def test_atmodel_add_activity():
         raise
     logging.debug("Completed test_atmodel_add_activity()")
 #endregion
+
+#region test_validate_activity_store_uri()
+#endregion
+
+#region test_to_dict()
+def test_to_dict():
+    """Test the to_dict method for FileATModel class"""
+    logging.debug("Starting test_to_dict()")
+    un = getpass.getuser()
+    an = un + "_activity"
+    activities = [
+        ActivityEntry(start="2025-03-22T14:42:49.298776", stop="2025-03-22T15:12:49.298776", activity="ae1 activity"),
+        ActivityEntry(start="2025-03-22T15:13:49.298776", stop="2025-03-22T15:43:49.298776", activity="ae2 activity"),
+        ActivityEntry(start="2025-03-22T15:44:49.298776", stop="2025-03-22T16:14:49.298776", activity="ae3 activity")
+    ]
+    created_date = "2025-03-22T14:42:49.300051"
+    last_modified_date = "2025-03-22T14:42:49.301397"
+    modified_by = "ppain"
+    activity_store_uri = FATM_DEFAULT_FILENAME
+
+    atm = FileATModel(
+        activityname=an,
+        activities=activities,
+        created_date=created_date,
+        last_modified_date=last_modified_date,
+        modified_by=modified_by,
+        activity_store_uri=activity_store_uri
+    )
+
+    expected_dict = {
+        "activityname": an,
+        "activities": [ ae.__dict__ for ae in activities ],
+        "created_date": created_date,
+        "last_modified_date": last_modified_date,
+        "modified_by": modified_by,
+        "activity_store_uri": activity_store_uri
+    }
+
+    result_dict = atm.to_dict()
+    assert result_dict == expected_dict, f"to_dict() returned {result_dict}, expected {expected_dict}"
+    logging.debug("Completed test_to_dict()")
+#endregion
+
+#region test_get_atmodel()
+def test_get_atmodel():
+    """Test the get_atmodel method for FileATModel class"""
+    logging.debug("Starting test_get_atmodel()")
+
+    folder_path = pathlib.Path(FATM_TESTDATA_DIR)
+    file_name = FATM_TESTDATA_FILENAME
+    full_path = folder_path / file_name
+    full_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    # Read the file back into a new FileATModel instance
+    assert (new_atm := FileATModel()) is not None, \
+        "creating empty FileATModel instance failed"
+    assert new_atm.get_atmodel(full_path) is None, \
+        f"get_atmodel failed to load from file {full_path}"
+    logging.debug(f"get_atmodel() returned: {new_atm}")
+    logging.debug(f"Completed test_get_atmodel()")    
+#endregion
+
 #-----------------------------------------------------------------------------+

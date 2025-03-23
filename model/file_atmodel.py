@@ -57,29 +57,30 @@ class FileATModel(ATModel):
     created_date: str = None
     last_modified_date: str = None
     modified_by: str = ""
-    # For FileATModel sub-class property values
-    filepath: str = "activity-tracking.json"  # default filepath for saving
+    activity_store_uri: str = FATM_DEFAULT_FILENAME  # default URI for saving
+    # For FileATModel, activity_store_uri is a pathname to a file.
     #-------------------------------------------------------------------------+
     # class constructor
     #-------------------------------------------------------------------------+
-    def __init__(self, activityname, activities=None, created_date=None, \
-                 last_modified_date=None, modified_by=None, filepath=None):
+    def __init__(self, activityname=None, activities=None, created_date=None, \
+                 last_modified_date=None, modified_by=None, activity_store_uri=None):
         self.activityname = activityname
         self.activities = activities if activities is not None else []
         self.created_date = created_date if created_date is not None else "2025-03-22T14:42:49.300051"
         self.last_modified_date = last_modified_date if last_modified_date is not None else "2025-03-22T14:42:49.301397"
         self.modified_by = modified_by if modified_by is not None else "ppain"
-        self.filepath = filepath if filepath is not None else "activity-tracking.json"
+        self.activity_store_uri = activity_store_uri if activity_store_uri is not None else FATM_DEFAULT_FILENAME
 
     def to_dict(self):
+        '''Return self FileATModel object as a dictionary, with the activities
+        list converted to a list of dictionaries.'''
         return {
             "activityname": self.activityname,
-            "activities": self.activities,
+            "activities": [ae.__dict__ for ae in self.activities],
             "created_date": self.created_date,
             "last_modified_date": self.last_modified_date,
             "modified_by": self.modified_by,
-            "filename": self.filename,
-            "folderpath": self.folderpath
+            "activity_store_uri": self.activity_store_uri
         }
 
     def __str__(self):
@@ -128,18 +129,20 @@ class FileATModel(ATModel):
     @modified_by.setter
     def modified_by(self, value: str) -> None:
         self._modified_by = value
+
+    @property
+    def activity_store_uri(self) -> str:
+        return self._activity_store_uri
+    
+    @activity_store_uri.setter
+    def activity_store_uri(self, value: str) -> None:
+        self._activity_store_uri = value
     #endregion
 
     #-------------------------------------------------------------------------+
     #region FileATModel Properties (specific to FileATModel class)
     #-------------------------------------------------------------------------+
-    @property
-    def filepath(self) -> str:
-        return self._filepath
-    
-    @filepath.setter
-    def filepath(self, value: str) -> None:
-        self._filepath = value
+    # tbd
     #endregion
 
     #-------------------------------------------------------------------------+
@@ -153,23 +156,23 @@ class FileATModel(ATModel):
         self.last_modified_date = atu.current_timestamp()
         return ae
 
-    def put_atmodel(self, filepath:str = None) -> bool:
+    def put_atmodel(self, activity_store_uri:str = None) -> bool:
         """ Save the current activity model to a .json file """
-        # filepath is the pathname to a file and must be a str.
-        # If filepath is None or "", the default filename is used.
+        # activity_store_uri is the pathname to a file and must be a str.
+        # If activity_store_uri is None or "", the default filename is used.
         # Raises TypeError as appropriate.
-        with open(self.validate_filepath(filepath), 'w') as file:
+        with open(self.validate_activity_store_uri(activity_store_uri), 'w') as file:
             data = asdict(self)
             data['activities'] = [asdict(ae) for ae in self.activities]
             json.dump(data, file, indent=4)
         return True
 
-    def get_atmodel(self, filepath:str) -> None:
+    def get_atmodel(self, activity_store_uri:str) -> None:
         """ Load the activity model from a .json file """
-        # filepath is the pathname to a file and must be a str.
-        # If filepath is None or "", the default filename is used.
+        # activity_store_uri is the pathname to a file and must be a str.
+        # If activity_store_uri is None or "", the default filename is used.
         # Raises ValueError or TypeError as appropriate.
-        with open(self.validate_filepath(filepath), 'r') as file:
+        with open(self.validate_activity_store_uri(activity_store_uri), 'r') as file:
             data = json.load(file)
             self.__activityname = data['activityname']
             self.activities = [ActivityEntry(**ae) for ae in data['activities']]
@@ -177,9 +180,9 @@ class FileATModel(ATModel):
             self.last_modified_date = data['last_modified_date']
             self.modified_by = data['modified_by']
 
-    def validate_filepath(self, filepath:str) -> pathlib.Path:
-        """ Validate the provided activity filepath """
-        my_fp = filepath
+    def validate_activity_store_uri(self, activity_store_uri:str) -> pathlib.Path:
+        """ Validate the provided activity activity_store_uri """
+        my_fp = activity_store_uri
         if my_fp is None:
             my_fp = pathlib.Path(FileATModel.default_activity_filename())
         if isinstance(my_fp, str) and len(my_fp) == 0 : 
@@ -189,7 +192,7 @@ class FileATModel(ATModel):
         if not isinstance(my_fp, pathlib.Path):
             t = type(my_fp).__name__
             rt = type(pathlib.Path).__name__
-            m = f"filepath must be type:'{rt}', not type:'{t}'"
+            m = f"activity_store_uri must be type:'{rt}', not type:'{t}'"
             raise TypeError(m)
         return my_fp
     #endregion
