@@ -1,7 +1,10 @@
 #-----------------------------------------------------------------------------+
+from abc import ABC, abstractmethod
 
 
-class IATViewModel():
+class BaseATViewModel(ABC):
+
+    @abstractmethod
     def get_filepath(self):
         raise NotImplementedError
     
