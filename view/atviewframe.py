@@ -6,11 +6,18 @@ from ttkbootstrap.constants import *
 import ttkbootstrap as tb
 from view.constants import AT_FAINT_GRAY
 class ATViewFrame(tb.Frame):
-    """ Activity Tracker View class.
-        The ATView class is a subclass of the tkinter.Tk class and implements 
-        the entire user interface for the Activity Tracker application.
+    """ Activity Tracker View Frame class.
+        The ATViewFrame class is a subclass of the ttkbootstrap class and 
+        implements the primary user interface for the application.
+
+        Properties
+        ----------
+        datacontext : object
+            The data context for the view, typically a ViewModel object. 
+            Just maintain a reference to the datacontext from root.
     """
     # DataContext properties
+    datacontext: object = None    # ATViewModel object used as datacontext
     filepath_value: tk.StringVar # file path for the activity tracker data file
 
     # UI widgets
@@ -27,6 +34,7 @@ class ATViewFrame(tb.Frame):
 
         # init properties
         self.root = root # reference to the root window
+        self.datacontext = root.datacontext # reference to the datacontext
         self.filepath_value = tk.StringVar()
         # init widgets in root window
         self.create_atviewframe_widgets() # setup atviewframe widgets
@@ -52,6 +60,9 @@ class ATViewFrame(tb.Frame):
 
     def set_datacontext(self, datacontext: object):
         self.datacontext = datacontext
+
+    def get_filepath(self):
+        return self.filepath_value.get()
 
     def set_filepath(self, filepath: str):
         self.filepath_value.set(filepath)

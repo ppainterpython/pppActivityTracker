@@ -82,6 +82,29 @@ Each UI element, such as TextBox, CheckBox, etc., will have an associated bindin
 
 Similarly, a ViewModel is bound to a Model using published interfaces. Code in the ViewModel is serving as a dispatcher between the View and the Model(s). How to declare this, in python code or configuration data, is yet to be seen. Several python projects have been created in the past to implement MVVM in python. But these are pretty heavy and the best one requires python support for Qt and I don't want to take the hit of learning Qt right now.
 
+### More Notes about MVVM
+
+Attribution: [What is MVVM](https://www.ramotion.com/blog/what-is-mvvm/)
+
+#### Flow of data in MVVM
+
+The flow of data in MVVM is one of the key principles that help to keep your application organised and maintainable. The data source flows from the view model, which updates the model, back to the view. It is important to note that this pattern does not allow for direct user interaction with models.
+
+The data flow is as follows:
+
+User interaction with the view (e.g. a button click)
+The view fires an event and passes it to the view model
+The view model processes this event and updates the model accordingly.
+The model is responsible for handling data persistence and business logic. The view model is responsible for handling user interactions with the application and updating the model accordingly.
+
+This pattern can be useful when you want to decouple your application from its data store, or if you want to hide business and validation logic from the view layer.
+
+#### Interaction between Model, View, and ViewModel
+
+There are three main actors in this pattern: the model, view, and view model. The model is responsible for handling data persistence and business logic. It is updated by the view model via commands from user’s interactions with the application. The view model handles user interactions with the application and updates the model accordingly.
+
+The view is responsible for displaying data in a way that is usable by the user. The view model generally does not contain any UI logic, but instead provides data to the view so that it can render accordingly.
+
 ## Architecture
 
 A high-level view of the ActivityTracking app is provided in the following diagram.
