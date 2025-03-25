@@ -1,6 +1,6 @@
 #------------------------------------------------------------------------------+
 import tkinter as tk
-from tkinter import EventType, StringVar, BooleanVar
+from tkinter import EventType, scrolledtext, StringVar, BooleanVar
 from tkinter import ttk
 from view.constants import ATV_FAINT_GRAY
 class ATViewFrame(ttk.Frame):
@@ -34,6 +34,8 @@ class ATViewFrame(ttk.Frame):
     save_button : tk.Button = None
     load_button : tk.Button = None
     quit_button: tk.Button = None
+    text_frame : tk.Frame = None
+    text_area: scrolledtext.ScrolledText = None
 
     def __init__(self, root): # self is tk.Tk root window
         # init super class (tk.Frame)
@@ -81,37 +83,51 @@ class ATViewFrame(ttk.Frame):
         self.save_button = tk.Button(self.button_frame,text="Save", width=10)
         self.load_button = tk.Button(self.button_frame,text="Load", width=10)
         self.quit_button = tk.Button(self.button_frame,text="Quit", width=10)
+        self.text_frame = tk.Frame(self)
+        self.text_area = scrolledtext.ScrolledText(self.text_frame,wrap=tk.WORD, width=40, height=10)
 
         #debug layout
-        tk.Label(self, text="Cell 2,0").grid(row=2, column=0, columnspan=1,sticky="ew", padx=5, pady=5)
-        tk.Label(self, text="Cell 2,1").grid(row=2, column=1, columnspan=1,sticky="ew", padx=5, pady=5)
-        tk.Label(self, text="Cell 2,2").grid(row=2, column=2, columnspan=1,sticky="ew", padx=5, pady=5)
-        tk.Label(self, text="Cell 2,3").grid(row=2, column=3, columnspan=1,sticky="ew", padx=5, pady=5)
-        tk.Label(self, text="Cell 2,4").grid(row=2, column=4, columnspan=1,sticky="ew", padx=5, pady=5)
+        tk.Label(self, text="Cell 3,0").grid(row=3, column=0, columnspan=1, \
+                                             sticky="nsew", padx=5, pady=5)
+        tk.Label(self, text="Cell 3,1").grid(row=3, column=1, columnspan=1, \
+                                             sticky="nsew", padx=5, pady=5)
+        tk.Label(self, text="Cell 3,2").grid(row=3, column=2, columnspan=1, \
+                                             sticky="nsew", padx=5, pady=5)
+        tk.Label(self, text="Cell 3,3").grid(row=3, column=3, columnspan=1, \
+                                             sticky="nsew", padx=5, pady=5)
+        tk.Label(self, text="Cell 3,4").grid(row=3, column=4, columnspan=1, \
+                                             sticky="nsew", padx=5, pady=5)
 
     def layout_atviewframe_widgets(self):
         '''Configure the ATViewFrame child widgets layout grid configuration'''
         # Use Pack layout for the ATViewFrame in the root window
         # The ATViewFrame should expand to fill the root window
         self.configure(style='TFrame') # set style for the frame
-        self.pack(side='top',  fill="x", ipady=20) # pack layout for the frame
+        self.pack(side='top',  fill="both", expand=True,ipady=20) # pack layout for the frame
 
-        # Configure the grid layout for the frame: 4 columns, 4 rows, 
+        # Configure the grid layout for the frame: 4 rows by 5 columns,
         # equal weight for all rows and columns.
-        self.rowconfigure((0,1,2,3,4), weight=1)
-        self.columnconfigure((0,1,2,3), weight=1) 
+        self.columnconfigure((0,1,2,3,4), weight=1)
+        self.rowconfigure(2, weight=2,uniform="b")
 
         # Layout the widgets in the grid
         # row 0: filepath label, entry, autosave checkbutton
         self.filepath_label.grid(row=0, column=0, sticky="e", padx=5, pady=5)
         self.filepath_entry.grid(row=0, column=1, columnspan=3, sticky="ew")
-        self.autosave_checkbutton.grid(row=0, column=4, padx=5, pady=5, sticky="ns")
+        self.autosave_checkbutton.grid(row=0, column=4, padx=5, pady=5, \
+                                       sticky="w")
 
         # row 1: button frame with save, load, quit buttons
-        self.button_frame.grid(row=1, column=2, columnspan=3, sticky="e")
+        self.button_frame.grid(row=1, column=0, columnspan=5, sticky="nse")
         self.quit_button.pack(side="right", padx=5, pady=5)
         self.load_button.pack(side="right", padx=5, pady=5)
         self.save_button.pack(side="right", padx=5, pady=5)
+
+        # row 2: text area for activity entries
+        self.text_frame.grid(row=2, column=0, columnspan=5, sticky="nsew", padx=5, pady=5)
+        self.text_area.grid(row=0, column=0, sticky="nsew")
+        self.text_frame.columnconfigure(0, weight=1)
+        self.text_frame.rowconfigure(0, weight=1)
 
     def bind_atviewframe_widgets(self):
         ''' Bind the widgets in the frame to their respective event handlers.
