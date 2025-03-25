@@ -61,7 +61,7 @@ class ATViewFrame(tb.Frame):
         '''Create the ATViewFrame widgets with minimal configuration,
         applying any style overrides.'''
         # Configure the ATViewFrame with a grid layout and style
-        self.pack()
+        self.pack(expand=True, fill="both") # pack layout for the frame
         # self.grid(pady=10, padx=10, sticky="ew") # grid layout for the frame
         style = ttk.Style(self)
         style.configure('TFrame', background=ATV_FAINT_GRAY)
@@ -79,6 +79,7 @@ class ATViewFrame(tb.Frame):
                            variable=self.autosave_value)
         self.autosave_checkbutton.configure(style='AT.TCheckbutton')  
         self.button_frame = tk.Frame(self,bg='red')
+        # self.button_frame.pack(expand=True, fill="both", padx=5, pady=5) # pack layout for button frame
         self.save_button = tk.Button(self.button_frame,text="Save", width=10)
         self.load_button = tk.Button(self.button_frame,text="Load", width=10)
         self.quit_button = tk.Button(self.button_frame,text="Quit", width=10)
@@ -102,7 +103,7 @@ class ATViewFrame(tb.Frame):
         self.autosave_checkbutton.grid(row=0, column=4, padx=5, pady=5, sticky="w")
 
         # row 1: button frame with save, load, quit buttons
-        self.button_frame.grid(row=1, column=1, columnspan=3)
+        self.button_frame.grid(row=1, column=2, columnspan=3)
         self.save_button.pack(side="right", padx=5, pady=5)
         self.load_button.pack(side="right", padx=5, pady=5)
         self.quit_button.pack(side="right", padx=5, pady=5)
