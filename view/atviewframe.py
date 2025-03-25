@@ -87,16 +87,16 @@ class ATViewFrame(ttk.Frame):
         self.text_area = scrolledtext.ScrolledText(self.text_frame,wrap=tk.WORD, width=40, height=10)
 
         #debug layout
-        tk.Label(self, text="Cell 3,0").grid(row=3, column=0, columnspan=1, \
-                                             sticky="nsew", padx=5, pady=5)
-        tk.Label(self, text="Cell 3,1").grid(row=3, column=1, columnspan=1, \
-                                             sticky="nsew", padx=5, pady=5)
-        tk.Label(self, text="Cell 3,2").grid(row=3, column=2, columnspan=1, \
-                                             sticky="nsew", padx=5, pady=5)
-        tk.Label(self, text="Cell 3,3").grid(row=3, column=3, columnspan=1, \
-                                             sticky="nsew", padx=5, pady=5)
-        tk.Label(self, text="Cell 3,4").grid(row=3, column=4, columnspan=1, \
-                                             sticky="nsew", padx=5, pady=5)
+        # tk.Label(self, text="Cell 3,0").grid(row=3, column=0, columnspan=1, \
+        #                                      sticky="nsew", padx=5, pady=5)
+        # tk.Label(self, text="Cell 3,1").grid(row=3, column=1, columnspan=1, \
+        #                                      sticky="nsew", padx=5, pady=5)
+        # tk.Label(self, text="Cell 3,2").grid(row=3, column=2, columnspan=1, \
+        #                                      sticky="nsew", padx=5, pady=5)
+        # tk.Label(self, text="Cell 3,3").grid(row=3, column=3, columnspan=1, \
+        #                                      sticky="nsew", padx=5, pady=5)
+        # tk.Label(self, text="Cell 3,4").grid(row=3, column=4, columnspan=1, \
+        #                                      sticky="nsew", padx=5, pady=5)
 
     def layout_atviewframe_widgets(self):
         '''Configure the ATViewFrame child widgets layout grid configuration'''
