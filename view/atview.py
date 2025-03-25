@@ -30,8 +30,8 @@ class ATView(tb.Window):
         super().__init__(title,themename)
         self.configure(bg=ATV_FAINT_GRAY)
         self.geometry("800x500")
-        self.minsize(800, 600)
-        self.columnconfigure(0, weight=1) # make the first column expandable
+        self.minsize(800, 500)
+        self.maxsize(1600, 1000)
         # init properties
         self.tkview_frame = atvf.ATViewFrame(self) # create the view frame
 

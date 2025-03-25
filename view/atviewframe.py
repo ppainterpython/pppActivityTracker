@@ -5,7 +5,7 @@ from tkinter import ttk
 from ttkbootstrap.constants import *
 import ttkbootstrap as tb
 from view.constants import ATV_FAINT_GRAY
-class ATViewFrame(tb.Frame):
+class ATViewFrame(ttk.Frame):
     """ Activity Tracker View Frame class.
         The ATViewFrame class is a subclass of the ttkbootstrap class and 
         implements the primary user interface for the application.
@@ -60,53 +60,59 @@ class ATViewFrame(tb.Frame):
     def create_atviewframe_widgets(self):
         '''Create the ATViewFrame widgets with minimal configuration,
         applying any style overrides.'''
-        # Configure the ATViewFrame with a grid layout and style
-        self.pack(expand=True, fill="both") # pack layout for the frame
-        # self.grid(pady=10, padx=10, sticky="ew") # grid layout for the frame
+        # Configure some style overrides for ATViewFrame
         style = ttk.Style(self)
-        style.configure('TFrame', background=ATV_FAINT_GRAY)
-        style.configure('AT.TCheckbutton', background=ATV_FAINT_GRAY)
-        style.configure('AT.TLabel', background=ATV_FAINT_GRAY)
+        font_style = ('Segoe UI', 12)
+        style.configure('TFrame', background=ATV_FAINT_GRAY, font=font_style)
+        style.configure('AT.TCheckbutton', background=ATV_FAINT_GRAY, font=font_style)
+        style.configure('AT.TLabel', background=ATV_FAINT_GRAY, font=font_style)
+        style.configure('AT.TEntry', background=ATV_FAINT_GRAY, font=font_style)
 
-        # Construct and style the widgets
+
+        # Construct the widgets
         # Basic design: root window -> ATViewFrame -> ATViewFrame widgets
         # button frame holds the buttons arranged horizontally
         self.filepath_label = ttk.Label(self, text="File Path:")
         self.filepath_label.configure(style='AT.TLabel') # set style for label
-        self.filepath_entry = tk.Entry(self,textvariable=self.filepath_value)
+        self.filepath_entry = tk.Entry(self,textvariable=self.filepath_value, font=font_style) 
         self.autosave_checkbutton = \
             ttk.Checkbutton(self,text="Auto Save",offvalue=False,onvalue=True, \
-                           variable=self.autosave_value)
+                           variable=self.autosave_value,style='AT.TCheckbutton')
         self.autosave_checkbutton.configure(style='AT.TCheckbutton')  
-        self.button_frame = tk.Frame(self,bg='red')
-        # self.button_frame.pack(expand=True, fill="both", padx=5, pady=5) # pack layout for button frame
+        self.button_frame = ttk.Frame(self)
         self.save_button = tk.Button(self.button_frame,text="Save", width=10)
         self.load_button = tk.Button(self.button_frame,text="Load", width=10)
         self.quit_button = tk.Button(self.button_frame,text="Quit", width=10)
 
         #debug layout
-        tk.Label(self, text="Cell 2,0").grid(row=2, column=0, columnspan=1,sticky="nsew")
-        tk.Label(self, text="Cell 2,1").grid(row=2, column=1, columnspan=1,sticky="nsew")
-        tk.Label(self, text="Cell 2,2").grid(row=2, column=2, columnspan=1,sticky="nsew")
-        tk.Label(self, text="Cell 2,3").grid(row=2, column=3, columnspan=1,sticky="nsew")
+        tk.Label(self, text="Cell 2,0").grid(row=2, column=0, columnspan=1,sticky="ew", padx=5, pady=5)
+        tk.Label(self, text="Cell 2,1").grid(row=2, column=1, columnspan=1,sticky="ew", padx=5, pady=5)
+        tk.Label(self, text="Cell 2,2").grid(row=2, column=2, columnspan=1,sticky="ew", padx=5, pady=5)
+        tk.Label(self, text="Cell 2,3").grid(row=2, column=3, columnspan=1,sticky="ew", padx=5, pady=5)
+        tk.Label(self, text="Cell 2,4").grid(row=2, column=4, columnspan=1,sticky="ew", padx=5, pady=5)
 
     def layout_atviewframe_widgets(self):
-        '''Configure the ATViewFrame widgets layout grid configuration'''
+        '''Configure the ATViewFrame child widgets layout grid configuration'''
+        # Use Pack layout for the ATViewFrame in the root window
+        # The ATViewFrame should expand to fill the root window
+        self.configure(style='TFrame') # set style for the frame
+        self.pack(side='top',  fill="x", ipady=20) # pack layout for the frame
+
         # Configure the grid layout for the frame: 4 columns, 4 rows
+        self.rowconfigure((0,1,2,3,4), weight=1)
         self.columnconfigure((0,1,2,3), weight=1) 
-        self.rowconfigure((0,1,2,3), weight=1)    
 
         # Layout the widgets in the grid
         # row 0: filepath label, entry, autosave checkbutton
-        self.filepath_label.grid(row=0, column=0, sticky="e", padx=5)
+        self.filepath_label.grid(row=0, column=0, sticky="e", padx=5, pady=5)
         self.filepath_entry.grid(row=0, column=1, columnspan=3, sticky="ew")
-        self.autosave_checkbutton.grid(row=0, column=4, padx=5, pady=5, sticky="w")
+        self.autosave_checkbutton.grid(row=0, column=4, padx=5, pady=5, sticky="ns")
 
         # row 1: button frame with save, load, quit buttons
-        self.button_frame.grid(row=1, column=2, columnspan=3)
-        self.save_button.pack(side="right", padx=5, pady=5)
-        self.load_button.pack(side="right", padx=5, pady=5)
+        self.button_frame.grid(row=1, column=3, columnspan=3, sticky="e")
         self.quit_button.pack(side="right", padx=5, pady=5)
+        self.load_button.pack(side="right", padx=5, pady=5)
+        self.save_button.pack(side="right", padx=5, pady=5)
 
     def bind_atviewframe_widgets(self):
         ''' Bind the widgets in the frame to their respective event handlers.
@@ -114,6 +120,8 @@ class ATViewFrame(tb.Frame):
         # bind event handlers
         self.quit_button.configure(command=self.root.destroy) # close the app
         self.autosave_checkbutton.configure(command=self.on_autosave_changed)
+        self.save_button.configure(command=self.on_save_button_clicked)
+        self.load_button.configure(command=self.on_load_button_clicked)
 
         # do key bindings
         self.filepath_entry.bind("<Return>", self.on_filepath_changed)
@@ -150,6 +158,16 @@ class ATViewFrame(tb.Frame):
         # TODO: how to signal event to ViewModel?
         #self.datacontext.ativity_store_uri.set(v) # signal ViewModel of change
         print(f"ATView.ATVFrame.filepath changed to: {v} after: {s}")
+
+    def on_save_button_clicked(self):
+        """ Event handler for when the user clicks the save button. """
+        v = self.filepath_value.get()
+        print(f"ATView.ATVFrame.save_button clicked with filepath: {v}")
+
+    def on_load_button_clicked(self):
+        """ Event handler for when the user clicks the load button. """
+        v = self.filepath_value.get()
+        print(f"ATView.ATVFrame.load_button clicked with filepath: {v}")
 
     def on_autosave_changed(self):
         """ Event handler for when the user checks or unchecks the 
