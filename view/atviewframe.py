@@ -2,8 +2,6 @@
 import tkinter as tk
 from tkinter import EventType, StringVar, BooleanVar
 from tkinter import ttk
-from ttkbootstrap.constants import *
-import ttkbootstrap as tb
 from view.constants import ATV_FAINT_GRAY
 class ATViewFrame(ttk.Frame):
     """ Activity Tracker View Frame class.
@@ -28,11 +26,11 @@ class ATViewFrame(ttk.Frame):
     autosave_value: tk.BooleanVar # auto save flag for the activity tracker data
 
     # UI widgets in the frame
-    root : tb.Window = None # root window
+    root : object = None # root window
     filepath_label: ttk.Label = None
     filepath_entry: tk.Entry = None
     autosave_checkbutton: ttk.Checkbutton = None
-    button_frame: tb.Frame = None
+    button_frame: ttk.Frame = None
     save_button : tk.Button = None
     load_button : tk.Button = None
     quit_button: tk.Button = None
@@ -98,7 +96,8 @@ class ATViewFrame(ttk.Frame):
         self.configure(style='TFrame') # set style for the frame
         self.pack(side='top',  fill="x", ipady=20) # pack layout for the frame
 
-        # Configure the grid layout for the frame: 4 columns, 4 rows
+        # Configure the grid layout for the frame: 4 columns, 4 rows, 
+        # equal weight for all rows and columns.
         self.rowconfigure((0,1,2,3,4), weight=1)
         self.columnconfigure((0,1,2,3), weight=1) 
 
@@ -109,7 +108,7 @@ class ATViewFrame(ttk.Frame):
         self.autosave_checkbutton.grid(row=0, column=4, padx=5, pady=5, sticky="ns")
 
         # row 1: button frame with save, load, quit buttons
-        self.button_frame.grid(row=1, column=3, columnspan=3, sticky="e")
+        self.button_frame.grid(row=1, column=2, columnspan=3, sticky="e")
         self.quit_button.pack(side="right", padx=5, pady=5)
         self.load_button.pack(side="right", padx=5, pady=5)
         self.save_button.pack(side="right", padx=5, pady=5)
