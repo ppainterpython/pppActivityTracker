@@ -1,8 +1,13 @@
 #------------------------------------------------------------------------------+
+import logging
 import tkinter as tk
 from tkinter import EventType, scrolledtext, StringVar, BooleanVar
 from tkinter import ttk
 from view.constants import ATV_FAINT_GRAY
+logger = logging.getLogger(__name__)  # create logger for the module
+logger.debug(f"Imported module: {__name__}")
+logger.debug(f"{__name__} Logger name: {logger.name}, Level: {logger.level}")
+
 class ATViewFrame(ttk.Frame):
     """ Activity Tracker View Frame class.
         The ATViewFrame class is a subclass of the ttkbootstrap class and 

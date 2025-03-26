@@ -1,4 +1,5 @@
 #-----------------------------------------------------------------------------+
+import logging
 import tkinter as tk
 from ttkbootstrap.constants import *
 import ttkbootstrap as tb  # tb.Window used for root window only
@@ -10,6 +11,10 @@ ATV_MIN_WINDOW_WIDTH = 800
 ATV_MIN_WINDOW_HEIGHT = 450
 ATV_MAX_WINDOW_WIDTH = 1600
 ATV_MAX_WINDOW_HEIGHT = 1000
+
+logger = logging.getLogger(__name__)  # create logger for the module
+logger.debug(f"Imported module: {__name__}")
+logger.debug(f"{__name__} Logger name: {logger.name}, Level: {logger.level}")
 
 class ATView(tb.Window):
     """ Activity Tracker View class.
@@ -42,6 +47,7 @@ class ATView(tb.Window):
         self.maxsize(ATV_MAX_WINDOW_WIDTH, ATV_MAX_WINDOW_HEIGHT)
         # init properties
         self.tkview_frame = atvf.ATViewFrame(self) # create the view frame
+        logger.debug("ATView initialized")
 
     #--------------------------------------------------------------------------+
     # Property attributes
