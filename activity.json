@@ -1,0 +1,30 @@
+{
+    "activityname": "ppain_activity",
+    "activities": [
+        {
+            "start": "2025-03-22T21:57:44.791040",
+            "stop": "2025-03-22T22:27:44.791040",
+            "activity": "ae1 activity",
+            "notes": "Notes for ae1 activity",
+            "duration": 0.5
+        },
+        {
+            "start": "2025-03-22T22:28:44.791040",
+            "stop": "2025-03-22T22:58:44.791040",
+            "activity": "ae2 activity",
+            "notes": "Notes for ae2 activity",
+            "duration": 0.5
+        },
+        {
+            "start": "2025-03-22T22:59:44.791040",
+            "stop": "2025-03-22T23:29:44.791040",
+            "activity": "ae3 activity",
+            "notes": "Notes for ae3 activity",
+            "duration": 0.5
+        }
+    ],
+    "created_date": "2025-03-22T14:42:49.300051",
+    "last_modified_date": "2025-03-22T21:57:44.795248",
+    "modified_by": "ppain",
+    "activity_store_uri": "tests/testdata/test_activities.json"
+}

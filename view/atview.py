@@ -3,16 +3,13 @@ import logging
 import tkinter as tk
 from ttkbootstrap.constants import *
 import ttkbootstrap as tb  # tb.Window used for root window only
+from constants import AT_APP_NAME # PPPACTIVITYTRACKER.constants for App
 from view import atviewframe as atvf
-from view.constants import ATV_FAINT_GRAY
+from view.constants import ATV_FAINT_GRAY, ATV_WINDOW_TITLE, \
+    ATV_MIN_WINDOW_WIDTH, ATV_MIN_WINDOW_HEIGHT, ATV_MAX_WINDOW_WIDTH, \
+        ATV_MAX_WINDOW_HEIGHT
 
-ATV_WINDOW_TITLE = "PP Python Activity Tracker"
-ATV_MIN_WINDOW_WIDTH = 800
-ATV_MIN_WINDOW_HEIGHT = 450
-ATV_MAX_WINDOW_WIDTH = 1600
-ATV_MAX_WINDOW_HEIGHT = 1000
-
-logger = logging.getLogger(__name__)  # create logger for the module
+logger = logging.getLogger(AT_APP_NAME)  # create logger for the module
 logger.debug(f"Imported module: {__name__}")
 logger.debug(f"{__name__} Logger name: {logger.name}, Level: {logger.level}")
 

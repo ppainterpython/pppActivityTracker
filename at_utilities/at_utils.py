@@ -219,7 +219,7 @@ def calculate_duration(start: str, stop: str, unit : str = "hours") -> float:
     return seconds 
 #endregion
 
-#region
+#region default_duration()
 def default_duration(unit : str = "hours") -> float:
     """ Default duration for an activity in hours (default), minutes or seconds """
     if unit == "hours":
@@ -258,6 +258,8 @@ def current_timestamp() -> str:
     return now_iso_date_string()
 #endregion
 
+#endregion Timestamp helper functions
+#-----------------------------------------------------------------------------+
 #region
 #endregion
 

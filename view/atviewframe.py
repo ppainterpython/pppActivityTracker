@@ -4,7 +4,11 @@ import tkinter as tk
 from tkinter import EventType, scrolledtext, StringVar, BooleanVar
 from tkinter import ttk
 from view.constants import ATV_FAINT_GRAY
-logger = logging.getLogger(__name__)  # create logger for the module
+from constants import AT_APP_NAME, AT_LOG_FILE, AT_DEFAULT_CONFIG_FILE
+
+ATV_DEFAULT_FILEPATH = "~/activity.json"  # default filename for saving
+
+logger = logging.getLogger(AT_APP_NAME)  # create logger for the module
 logger.debug(f"Imported module: {__name__}")
 logger.debug(f"{__name__} Logger name: {logger.name}, Level: {logger.level}")
 
@@ -49,7 +53,7 @@ class ATViewFrame(ttk.Frame):
         # init value properties
         self.root = root # reference to the root window
         self.datacontext = root.datacontext # reference to the datacontext
-        self.filepath_value = tk.StringVar(self)
+        self.filepath_value = tk.StringVar(self,value=ATV_DEFAULT_FILEPATH)
         self.autosave_value = tk.BooleanVar(self)
         self.autosave_value.set(False) # default for autosave
 
