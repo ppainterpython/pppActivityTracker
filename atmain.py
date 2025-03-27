@@ -1,6 +1,6 @@
 #------------------------------------------------------------------------------+
 import logging, sys
-from constants import AT_APP_NAME, AT_LOG_FILE
+from atconstants import AT_APP_NAME, AT_LOG_FILE
 
 
 #------------------------------------------------------------------------------+
@@ -54,12 +54,12 @@ if __name__ == "__main__":
 #------------------------------------------------------------------------------+
 
 from view import atview 
-from viewmodel import atviewmodel
+from viewmodel import mainatviewmodel as MainATViewModel
 
 class Application:
     """Activity Tracker Main Application"""
     atv: atview.ATView = None
-    atvm: atviewmodel.ATViewModel = None
+    atvm: MainATViewModel.MainATModel = None
 
     def __init__(self):
         logger.info("Initializing Application")
@@ -71,12 +71,12 @@ class Application:
         self.atv = atview.ATView()
         logger.debug("ATView created")
 
-        # If configured, create an ATViewModel
-        self.atvm = atviewmodel.ATViewModel(self.atv)
-        logger.debug("ATViewModel created")
+        # If configured, create an MainATModel
+        self.atvm = MainATViewModel.MainATModel(self.atv)
+        logger.debug("MainATModel created")
 
         # Which subclass(es) of ATModel are used is determined by the
-        # configuration file. The ATViewModel is responsible to load the
+        # configuration file. The MainATModel is responsible to load the
         # configuration file and create the appropriate ATModel subclass.
 
     def run(self):

@@ -1,12 +1,12 @@
 #-----------------------------------------------------------------------------+
 import getpass, pathlib, logging, pytest
-from constants import AT_APP_NAME # PPPACTIVITYTRACKER.constants for App
+from atconstants import AT_APP_NAME # PPPACTIVITYTRACKER.constants for App
 
 #region test_logging_config()
 def test_logging_config(caplog):
     '''Test the logging configuration of the PPPAcitivityTracker application'''
     '''Import main.py and test the setup_logging() function'''
-    import main as m
+    import atmain as m
 
     # prefix string for the test function (tf) name
     tf = f"{__name__}.setup_logging(): " 

@@ -1,10 +1,10 @@
 #-----------------------------------------------------------------------------+
-from viewmodel.base_atviewmodel.baseatviewmodel import BaseATViewModel
+from viewmodel.base_atviewmodel.atviewmodel import ATViewModel
 from view import atview
 
 
-class ATViewModel(BaseATViewModel):
-    '''    ATViewModel is a concrete subclass of BaseATViewModel, representing the
+class MainATModel(ATViewModel):
+    '''    MainATModel is a concrete subclass of ATModel, representing the
     ViewModel for the Activity Tracker application. Optionally, it associates 
     a View object.
     
@@ -25,17 +25,21 @@ class ATViewModel(BaseATViewModel):
     the model domain, independent of the ViewModel. Provides read, write, and 
     save methods to persist the model.
     '''
-    #region ATViewModel Class
+    #region MainATModel Class
     #-------------------------------------------------------------------------+
+    activity_store_uri: str = "activities.json"
     atv: atview.ATView = None # Reference to the View object for AT.
+    
     def __init__(self, atv: atview.ATView = None):
         self.atv = atv # Associate ViewModel with View
 
     @property
     def activity_store_uri(self):
-        return "activities.json"
+        return self.activity_store_uri
     
     @activity_store_uri.setter
     def activity_store_uri(self, value):
         self.activity_store_uri = value
-    #endregion ATViewModel Class
+
+    #endregion MainATModel Class
+    #-------------------------------------------------------------------------+

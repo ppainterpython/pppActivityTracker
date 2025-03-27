@@ -2,8 +2,8 @@
 from abc import ABC, abstractmethod
 
 
-class BaseATViewModel(ABC):
-    '''    BaseATViewModel is an abstract base class for the ViewModel of the 
+class ATViewModel(ABC):
+    '''ATViewModel is an abstract base class for the ViewModel of the 
     Activity Tracker application. It defines the interface for any concrete
     subclass with additional specialization.
 

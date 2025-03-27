@@ -24,7 +24,7 @@ pppActivityTracker (project root)
 │   └── atmodel.py (ActivityTracker Model)
 │
 ├── viewmodel/
-│   └── atviewmodel.py (Activity Tracker viewmodel)
+│   └── MainATModel.py (Activity Tracker viewmodel)
 │
 ├── view/
 │   ├── atview.py (Activity Tracker view)
@@ -105,6 +105,27 @@ There are three main actors in this pattern: the model, view, and view model. Th
 
 The view is responsible for displaying data in a way that is usable by the user. The view model generally does not contain any UI logic, but instead provides data to the view so that it can render accordingly.
 
+#### Datacontext to De-couple View from ViewModel
+
+Attribution: ChatGPT Session
+
+DataContext is a View property with a reference to an instance of the ViewModel that the View binds to. The View's bindings can access properties, commands, events and collections exposed by the ViewModel. The binding process associates elements of the View user interface to the appropriate ViewModel properties and commands.
+
+In this application, the View is implented with Tkinter. Each button has a command attrbute for a function running in the view. That simple function will publish a CommandEvent to the ViewModel without blocking. Simple input elements such as Text, Checkbox, Radio Buttons, etc., will publish ChangedEvents to the ViewModel. The DataContext is used to Publish events from the View. It is the ViewModel's responsibility to manage the events and handle them.
+
+ViewModels and Views will support interfaces through the use of abstract classes BaseViewModel and BaseView respectively. A simple dictionary might be used to specify the intended binding between the view's UI elements and ViewModel properties and commands. Something like this:
+
+```json
+{
+    "ViewBindingName as a string": {
+        "BindingType": "input|command",
+        "ViewModelBindingName as a string": "(property|command)name"
+    }
+}
+```
+
+An event service is available for the View to publish events to the ViewModel. Also, the View supports a thread-safe means for the ViewModel to publish events to the View.
+
 ## Architecture
 
 A high-level view of the ActivityTracking app is provided in the following diagram.
@@ -150,9 +171,11 @@ flowchart LR
 
 | Class Name  | Filename | Description |
 | ----------- | -------- | ----------- |
-| `ATModel` | `model/atmodel.py`| Activity Tracker Model class is the high level object containing the entire Model. It uses defined interfaces which are bound to specific Services for implementation.|
-|`ActivityEntry`| `model/ae.py` | Activity Entry is a dataclass for a single activity.|
-|`ATViewModel`|`viewmodel/atviewmodel.py`| The app's top-level ViewModel class.|
+| `ATModel` | `model/base_atmodel/atmodel.py`| Activity Tracker base Model class is the abstract class defining the interface for the entire Model. |
+| `FileATModel` | `model/file_atmodel.py`| Concrete implementation of ATModel class. FileATModel implements storage of the model in the local filesystem.|
+|`ActivityEntry`| `model/ae.py` | ActivityEntry is a dataclass for a single activity.|
+|`ATViewModel`|`viewmodel/base_atviewmodel/ATModel.py`| Activity Tracker base ViewModel class is the abstract class defining the interface for the ViewModel.|
+|`MainATViemModel`|`viewmodel/MainATModel.py`| A concreate implementation of the ATViewModel abstract class.|
 |`ATView`|`view/atview.py`| Top-level class of the View of the app. |
 |`Application`|`main.py`| Class for the singleton application object.|
 |``|``||
