@@ -6,20 +6,29 @@ import threading, queue
 class ATEvent (threading.Event):
     ''' ATEvent is a subclass of threading.Event. ATEvents are published to
     notify the owning module about an event in their scope.'''
-    event_name = None
+    _event_name = None
+    _event_data = None
 
     def __init__(self, event_name:str=None, event_data:dict=None):
         super().__init__()
-        event_name = event_name
-        data : dict = event_data
+        self._event_name = event_name
+        self._event_data : dict = event_data
 
     @property
     def event_name(self):
-        return self.event_name
+        return self._event_name
     
     @event_name.setter
     def event_name(self, value):
-        self.event_name = value
+        self._event_name = value
+
+    @property
+    def event_data(self):
+        return self._event_data
+    
+    @event_data.setter
+    def event_data(self, value):
+        self._event_data = value
 
     def set(self):
         super().set()
