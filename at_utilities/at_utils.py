@@ -1,7 +1,7 @@
-#-----------------------------------------------------------------------------+
+#------------------------------------------------------------------------------+
 # at_utils.py
-import datetime
-#-----------------------------------------------------------------------------+
+import datetime,threading, os
+#------------------------------------------------------------------------------+
 # Often when working with dates and times, where calculating time interval 
 # durations with a start and stop time, the units of the duration value will
 # be useful in hours, minutes or seconds. Applications using at_utils will
@@ -14,7 +14,7 @@ import datetime
 ATU_DEFAULT_DURATION = 0.5 # Default in hours for an activity entry
 ATU_DEFAULT_DURATION_MINUTES = ATU_DEFAULT_DURATION * 60.0 # Default in minutes
 ATU_DEFAULT_DURATION_SECONDS = ATU_DEFAULT_DURATION * 3600.0 # Default in seconds
-#-----------------------------------------------------------------------------+
+#------------------------------------------------------------------------------+
 
 #region ISO 8601 Timestamp functional interface
 def iso_date_string(dt: datetime.datetime) -> str:
@@ -259,12 +259,16 @@ def current_timestamp() -> str:
 #endregion
 
 #endregion Timestamp helper functions
-#-----------------------------------------------------------------------------+
+#------------------------------------------------------------------------------+
+
 #region
+def ptid()->str:
+    """Return the current process:thread id."""
+    return f"[{os.getpid()}:{threading.get_native_id()}]"
 #endregion
 
 #region
 #endregion
 
 
-#-----------------------------------------------------------------------------+
+#------------------------------------------------------------------------------+

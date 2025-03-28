@@ -20,6 +20,10 @@ def test_at_event_manager():
         "Event queue not added to event manager."
     assert not myEM.add_event_queue(atev.ATViewEvent.__name__), \
         "Second add_event_queue() returned True."
+    assert myEM.get_event_queue("test_event_type"), \
+        "Event queue not retrieved from event manager."
+    assert myEM.get_event_queue(atev.ATViewEvent.__name__), \
+        "Event queue not retrieved from event manager."
     
     # Test creating some ATEvnet objects
     assert (e1 := atev.ATViewEvent("test_event_type", "test_event_data")), \
@@ -28,8 +32,10 @@ def test_at_event_manager():
         f"ATEvnet()\"{atev.ATViewEvent.__name__}\" object not created."
     
     # Test publishing events to the event manager
-    myEM.publish_event(e1)
-    myEM.destroy()
+    myEM.start()
+    myEM.publish(e1)
+    myEM.publish(e2)
+    foo = "foo"
 
     # Test with invalid type of input
     # with pytest.raises(TypeError) : atu.iso_date_string(None)

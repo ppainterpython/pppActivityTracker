@@ -1,5 +1,9 @@
 #------------------------------------------------------------------------------+
-import threading, queue
+import threading, queue, logging
+from atconstants import AT_APP_NAME, AT_LOG_FILE, AT_DEFAULT_CONFIG_FILE
+import at_utilities.at_utils as atu
+from at_utilities import at_events as atev
+ 
 '''
 ATEvents is a module that contains classes for managing events in the
 Activity Tracker application. The module contains classes for managing a 
@@ -22,6 +26,10 @@ event handler functions.
 TODO: Expand to multiple worker threads for each event type with its own queue 
 and signal event callback method.
 '''
+logger = logging.getLogger(AT_APP_NAME)  # create logger for the module
+logger.debug(f"Imported module: {__name__}")
+logger.debug(f"{__name__} Logger name: {logger.name}, Level: {logger.level}")
+
 
 #------------------------------------------------------------------------------+
 #region class ATEventSignal
@@ -184,37 +192,69 @@ class ATEventManager():
         self.event_queues = {}
         self.signal_event = threading.Event()
         self.running = False
-        self.event_thread = threading.Thread(target=self.process_events, daemon=True)
+        self.event_thread = threading.Thread(name="ATEventManagerThread", 
+                            daemon=True, target=self.process_events)
 
     def process_events(self):
         '''Process the events in the event queue'''
+        cn = ATEventManager.__name__; tp = atu.ptid(); p = f"{tp}:{cn}.process_events()"
         while self.running:
+            print(f"{p} running=True.")
             if self.signal_event.is_set():
+                print(f"{p} is_set().")
                 for event_type in self.event_queues:
                     event_queue = self.event_queues[event_type]
                     if not event_queue.empty():
                         # Get an event from the queue
                         event = event_queue.get()
-                        self.signal_event.clear()
-                        self.process_event(event)
+                        self.process_an_event(event)
+                # clear signal event when queues are empty
+                self.signal_event.clear()
+                print(f"{p} signal clear().")
             else:
-                self.signal_event.wait()
+                to = 5.0
+                print(f"{p} signal_event.wait({to}).")
+                self.signal_event.wait(to)
+                print(f"{p} signal_event.wait({to}) expired.")
+
+    def process_an_event(self, event):
+        '''Process an event by calling the event's callback method'''
+        cn = ATEventManager.__name__; tp = atu.ptid(); p = f"{tp}:{cn}.process_an_event()"
+        tn = type(event).__name__; en = event.event_name; ed = event.event_data 
+        print(f"{p}process_an_event(): {tn}[event_name='{en}', event_data='{ed}']")
+        match type(event):
+            case atev.ATViewEvent:
+                print(f"{p}{tn} event processing")
+            case atev.ATEvent:
+                print(f"{p}{tn} event processing")
+            case _:
+                pass
+        return
 
     def start(self):
         '''Start the event manager thread'''
+        cn = ATEventManager.__name__; tp = atu.ptid(); p = f"{tp}:{cn}.start()"
+        print(f"{p} starting event manager.")
         self.running = True
         if not self.event_thread.is_alive():
             self.event_thread.start()
+            t = self.event_thread.native_id
+            print(f"{atu.ptid()}:ATEventManager.start(): started worker thread {t}.")
 
     def get_event_queue(self, event_type : str, create : bool = True) -> ATEventQueue:
-        '''Get the event queue for the event type if it exists.
-        If create is True, create the event queue if it does not exist.'''
+        '''Get the event queue for the event type.
+        If the queue already exists, return it.
+        If the queue does not exist and create is True, create the event queue. 
+        If the queue does not exist and create is False, return None.'''
         if event_type in self.event_queues:
             return self.event_queues[event_type]
         elif create:
-            return self.add_event_queue(event_type)
+            if self.add_event_queue(event_type):
+                return self.event_queues[event_type]
+            else:
+                return None
         else:
-            return
+            return None
         
     def add_event_queue(self, event_type : str):
         '''Add an event_queue to the EventManager for event_type if not
@@ -229,14 +269,18 @@ class ATEventManager():
 
     def publish(self, event: ATEvent):
         '''Publish an event to the event queue based on the event type'''
-
+        p = atu.ptid()  # process/thread id
         # Add the event to the indicated event queue.
-        if self.get_event_queue(event.event_name):
-            self.event_queues[event.event_name].put(event)
+        et = type(event).__name__
+        en = event.event_name
+        if self.get_event_queue(en):
+            self.event_queues[en].put(event)
+            print(f"{p}:Published Event[{et}.{en}] to queue: ")
 
         # Signal the event queue to process the event
         if not self.signal_event.is_set():
             self.signal_event.set()
+            print(f"{p}:Signal event set.")
 
     def subscribe(self, event_name, callback):
         while not self.event_queue.empty():
