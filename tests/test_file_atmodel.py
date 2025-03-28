@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------+
+#------------------------------------------------------------------------------+
 import getpass, pathlib, logging, pytest
 # from dataclasses import dataclass, field, asdict
 import at_utilities.at_utils as atu
@@ -25,8 +25,10 @@ def test_atmodel_constructor():
         f"created_date is not a valid ISO date string:{am.created_date}"
     assert atu.validate_iso_date_string(am.last_modified_date), \
         f"last_modified_date is not a valid ISO date string:{am.last_modified_date}"
-    assert am.modified_by == getpass.getuser(), "modified_by should be the current user"
-    assert am.__str__() == f"ActivityEntry(activityname='{an}')", "String representation of FileATModel is incorrect"
+    assert am.modified_by == getpass.getuser(), \
+        "modified_by should be the current user"
+    assert am.__str__() == f"ActivityEntry(activityname='{an}')", \
+        "String representation of FileATModel is incorrect"
 #endregion
 
 #region test_atmodel_add_activity()
@@ -56,21 +58,25 @@ def test_atmodel_add_activity():
     assert ae1 is not None, "create activity ae1 __init__ failed!"
     assert ae1.start == start1, "ae1.start value is incorrect"
     assert ae1.duration == default_dur_hours, "ae1 duration is incorrect"
-    assert str(ae1) == activity1, "String representation of ActivityEntry ae1 is not correct"
+    assert str(ae1) == activity1, \
+        "String representation of ActivityEntry ae1 is not correct"
 
     ae2 = ActivityEntry(start=start2, stop=stop2, activity=activity2)
     assert ae2 != None, "create activity entry start2 failed!"
     assert ae2.start == start2, "ae2.start value is incorrect"
     assert ae2.duration == default_dur_hours, "ae2 duration is incorrect"
-    assert str(ae2) == activity2, "String representation of ActivityEntry ae2 is not correct"
+    assert str(ae2) == activity2, \
+        "String representation of ActivityEntry ae2 is not correct"
 
     ae3 = ActivityEntry(start=start3, stop=stop3, activity=activity3)
     assert ae3 != None, "create activity entry start3 failed!"
     assert ae3.start == start3, "ae3.start value is incorrect"
     assert ae3.duration == default_dur_hours, "ae3 duration is incorrect"
-    assert str(ae3) == activity3, "String representation of ActivityEntry ae3 is not correct"
+    assert str(ae3) == activity3, \
+        "String representation of ActivityEntry ae3 is not correct"
 
-    assert (atm := FileATModel(an)) is not None, "creating FileATModel instance failed"
+    assert (atm := FileATModel(an)) is not None, \
+        "creating FileATModel instance failed"
     assert isinstance(atm, FileATModel), \
         f"FileATModel() returned type:'{type(atm).__name__}' "
     assert isinstance(atm, ATModel), \
@@ -210,9 +216,13 @@ def test_to_dict():
     un = getpass.getuser()
     an = un + "_activity"
     activities = [
-        ActivityEntry(start="2025-03-22T14:42:49.298776", stop="2025-03-22T15:12:49.298776", activity="ae1 activity"),
-        ActivityEntry(start="2025-03-22T15:13:49.298776", stop="2025-03-22T15:43:49.298776", activity="ae2 activity"),
-        ActivityEntry(start="2025-03-22T15:44:49.298776", stop="2025-03-22T16:14:49.298776", activity="ae3 activity")
+        ActivityEntry(start="2025-03-22T14:42:49.298776", \
+                      stop="2025-03-22T15:12:49.298776", \
+                        activity="ae1 activity"),
+        ActivityEntry(start="2025-03-22T15:13:49.298776", \
+                      stop="2025-03-22T15:43:49.298776", activity="ae2 activity"),
+        ActivityEntry(start="2025-03-22T15:44:49.298776", \
+                      stop="2025-03-22T16:14:49.298776", activity="ae3 activity")
     ]
     created_date = "2025-03-22T14:42:49.300051"
     last_modified_date = "2025-03-22T14:42:49.301397"
@@ -238,7 +248,8 @@ def test_to_dict():
     }
 
     result_dict = atm.to_dict()
-    assert result_dict == expected_dict, f"to_dict() returned {result_dict}, expected {expected_dict}"
+    assert result_dict == expected_dict, f"to_dict() returned {result_dict}, \
+        expected {expected_dict}"
     logging.debug("Completed test_to_dict()")
 #endregion
 
@@ -273,4 +284,4 @@ def test_default_created_date():
     logging.debug("Completed test_default_created_date()")
 #endregion 
 
-#-----------------------------------------------------------------------------+
+#------------------------------------------------------------------------------+
