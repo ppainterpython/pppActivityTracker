@@ -199,16 +199,27 @@ class ATEventManager():
         self.signal_event = threading.Event()
         self.running = False
         self.event_thread = threading.Thread(name="ATEventManagerThread", 
-                            daemon=True, target=self.process_events)
+                            daemon=True, target=self.process_events_loop)
         self.lock = threading.Lock()  # For thread-safe access to event queues
 
-    def process_events(self):
+    def start(self):
+        '''Start the event manager thread'''
+        cn = ATEventManager.__name__; tp = atu.ptid(); p = f"{tp}:{cn}.start()"
+        print(f"{p} starting event manager.")
+        if not self.event_thread.is_alive():
+            self.event_thread.start()
+            self.running = True
+            t = self.event_thread.native_id
+            print(f"{p} started worker thread {t}.")
+
+    def process_events_loop(self):
         '''Process the events in the event queue'''
-        cn = ATEventManager.__name__; tp = atu.ptid(); p = f"{tp}:{cn}.process_events()"
+        cn = ATEventManager.__name__; tp = atu.ptid(); p = f"{tp}:{cn}.process_events_loop()"
+        print(f"{p} Entry: self.running = {self.running}.")
         while self.running:
             print(f"{p} running=True.")
             if self.signal_event.is_set():
-                print(f"{p} is_set().")
+                print(f"{p} signal_event.is_set():True.")
                 all_queues_empty = True
                 for event_type in self.event_queues:
                     event_queue = self.event_queues[event_type]
@@ -220,13 +231,15 @@ class ATEventManager():
                 # clear signal event when queues are empty
                 if all_queues_empty:  
                     self.signal_event.clear()
-                    print(f"{p} signal clear().")
+                    print(f"{p} signal_event.clear().")
             else:
                 to = 5.0
+                print(f"{p} signal_event.is_set():True.")
                 print(f"{p} signal_event.wait({to}).")
                 self.signal_event.wait(to)
                 print(f"{p} signal_event.wait({to}) expired.")
-
+        print(f"{p} Exit: self.running = {self.running}.")
+ 
     def process_an_event(self, event):
         '''Process an event by calling the event's callback method'''
         cn = ATEventManager.__name__; tp = atu.ptid(); p = f"{tp}:{cn}.process_an_event()"
@@ -240,16 +253,6 @@ class ATEventManager():
             case _:
                 pass
         return
-
-    def start(self):
-        '''Start the event manager thread'''
-        cn = ATEventManager.__name__; tp = atu.ptid(); p = f"{tp}:{cn}.start()"
-        print(f"{p} starting event manager.")
-        self.running = True
-        if not self.event_thread.is_alive():
-            self.event_thread.start()
-            t = self.event_thread.native_id
-            print(f"{atu.ptid()}:ATEventManager.start(): started worker thread {t}.")
 
     def get_event_queue(self, event_type : str, create : bool = True) -> ATEventQueue:
         '''Get the event queue for the event type.
@@ -318,13 +321,15 @@ if __name__ == "__main__":
     event2 = ATEvent("EventType1", {"key2": "value2"})
     event3 = ATEvent("EventType2", {"key3": "value3"})
 
+    # Allow some time for events to be processed
+    import time
+    time.sleep(2)
+
     myEM.publish(event1)
     myEM.publish(event2)
     myEM.publish(event3)
 
-    # Allow some time for events to be processed
-    import time
-    time.sleep(2)
+    time.sleep(2)  # Allow some time for events to be processed
 
     # Stop the event manager
     myEM.running = False

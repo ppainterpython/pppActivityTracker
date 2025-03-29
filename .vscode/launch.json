@@ -15,9 +15,14 @@
             "name": "Python Debugger: Package Directory",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}${/}${relativeFile}", 
+            "program": "${file}", 
             "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}" // Set the working directory to the project root
+            "cwd": "${workspaceFolder}", 
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+            // "purpose": ["debug-test"]
+            // "justMyCode": false // to debug worker threads
         }
     ]
 }
