@@ -184,6 +184,12 @@ class ATEventManager():
     ATEventManager is a singleton class that manages the event queues for 
     the Activity Tracker ViewMOdel application. This Event Manager is 
     responsible for for subscribing to events from the ATView.
+
+    A single background thread processes the event queues. The thread waits for
+    events to be published to the queues. When an event is published, the 
+    a threading.Event is used to signal the background thread to process the
+    event queue. A threading.Loclk is used to ensure thread-safe access to the
+    event queues in self.event_queues.
     TODO: Expand to multiple signal events for various event types with their
     own event queues.
     TODO: Expand to multiple worker threads for each event type with its own.
@@ -194,6 +200,7 @@ class ATEventManager():
         self.running = False
         self.event_thread = threading.Thread(name="ATEventManagerThread", 
                             daemon=True, target=self.process_events)
+        self.lock = threading.Lock()  # For thread-safe access to event queues
 
     def process_events(self):
         '''Process the events in the event queue'''
@@ -202,15 +209,18 @@ class ATEventManager():
             print(f"{p} running=True.")
             if self.signal_event.is_set():
                 print(f"{p} is_set().")
+                all_queues_empty = True
                 for event_type in self.event_queues:
                     event_queue = self.event_queues[event_type]
-                    if not event_queue.empty():
-                        # Get an event from the queue
+                    while not event_queue.empty():
+                        # Get an event from the queue until none are left
                         event = event_queue.get()
                         self.process_an_event(event)
+                        all_queues_empty = False 
                 # clear signal event when queues are empty
-                self.signal_event.clear()
-                print(f"{p} signal clear().")
+                if all_queues_empty:  
+                    self.signal_event.clear()
+                    print(f"{p} signal clear().")
             else:
                 to = 5.0
                 print(f"{p} signal_event.wait({to}).")
@@ -246,26 +256,32 @@ class ATEventManager():
         If the queue already exists, return it.
         If the queue does not exist and create is True, create the event queue. 
         If the queue does not exist and create is False, return None.'''
-        if event_type in self.event_queues:
-            return self.event_queues[event_type]
-        elif create:
-            if self.add_event_queue(event_type):
+        with self.lock:  # Ensure thread-safe access to event queues
+            if event_type in self.event_queues:
                 return self.event_queues[event_type]
+            elif create:
+                if self.add_event_queue(event_type):
+                    return self.event_queues[event_type]
+                else:
+                    return None
             else:
                 return None
-        else:
-            return None
         
     def add_event_queue(self, event_type : str):
         '''Add an event_queue to the EventManager for event_type if not
         already added.'''
-        if isinstance(event_type, str) and not event_type in self.event_queues :
-            # Add the event queue for event type if not already there.
-            self.event_queues[event_type] = ATEventQueue()
-            # True when new queue is added
-            return True
-        else:
-            return False
+        with self.lock:
+            # This lock ensures that only one thread can modify the event_queues at a time
+            cn = ATEventManager.__name__; tp = atu.ptid(); p = f"{tp}:{cn}.add_event_queue()"
+            print(f"{p} Adding event queue for event type: {event_type}")
+            # Check if the event type already exists in the event queues
+            if isinstance(event_type, str) and not event_type in self.event_queues :
+                # Add the event queue for event type if not already there.
+                self.event_queues[event_type] = ATEventQueue()
+                # True when new queue is added
+                return True
+            else:
+                return False
 
     def publish(self, event: ATEvent):
         '''Publish an event to the event queue based on the event type'''
@@ -295,8 +311,23 @@ class ATEventManager():
 #region local debugging code
 if __name__ == "__main__":
     myEM = ATEventManager()
+    myEM.start()  # Start the event manager thread
 
+    # Create and publish events
+    event1 = ATEvent("EventType1", {"key1": "value1"})
+    event2 = ATEvent("EventType1", {"key2": "value2"})
+    event3 = ATEvent("EventType2", {"key3": "value3"})
 
+    myEM.publish(event1)
+    myEM.publish(event2)
+    myEM.publish(event3)
 
+    # Allow some time for events to be processed
+    import time
+    time.sleep(2)
+
+    # Stop the event manager
+    myEM.running = False
+    myEM.signal_event.set()  # Wake up the thread to exit
 #endregion local debugging code
 
