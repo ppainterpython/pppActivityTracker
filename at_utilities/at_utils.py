@@ -15,7 +15,6 @@ ATU_DEFAULT_DURATION = 0.5 # Default in hours for an activity entry
 ATU_DEFAULT_DURATION_MINUTES = ATU_DEFAULT_DURATION * 60.0 # Default in minutes
 ATU_DEFAULT_DURATION_SECONDS = ATU_DEFAULT_DURATION * 3600.0 # Default in seconds
 #------------------------------------------------------------------------------+
-
 #region ISO 8601 Timestamp functional interface
 def iso_date_string(dt: datetime.datetime) -> str:
     """Convert a datetime object to an ISO format string."""
@@ -107,7 +106,9 @@ def to_float(value) -> float:
         e.add_note(f"{type(e).__name__}: Cannot convert '{value}' to int")
         raise
 #endregion ISO 8601 Timestamp functional interface
+#------------------------------------------------------------------------------+
 
+#------------------------------------------------------------------------------+
 #region Timestamp helper functions
 
 #region validate_start()
@@ -261,29 +262,25 @@ def current_timestamp() -> str:
 #endregion Timestamp helper functions
 #------------------------------------------------------------------------------+
 
-#region
+#------------------------------------------------------------------------------+
+#region basic utility functions
+#------------------------------------------------------------------------------+
+#region ptid()
 def ptid()->str:
     """Return the current process:thread id."""
     return f"[{os.getpid()}:{threading.get_native_id()}]"
 #endregion
 
-#region
-def mn():
+#region pfx()
+def pfx(o :object=None) -> str:
     import sys
-    rv = sys._getframe(1).f_code.co_name if hasattr(sys, "_getframe") and sys._getframe(1) else "<unknown>"
-    # rv = str(inspect.currentframe().f_code.co_name)
-    return rv + "()"
-#endregion
-
-#region
-def pfx(o :object) -> str:
-    import sys
-    pt = ptid()
-    cn = o.__class__.__name__ if hasattr(o, "__class__") else "<unknown>"
+    pt = ptid() #; me = o if o is not None else __name__
+    cn = o.__class__.__name__ if o is not None and hasattr(o, "__class__") else __name__
     mn = sys._getframe(1).f_code.co_name if hasattr(sys, "_getframe") and sys._getframe(1) else "<unknown>"
     rv = f"{pt}:{cn}.{mn}()"
     # rv = str(inspect.currentframe().f_code.co_name)
     return rv 
-#endregion
+#endregion 
 
+#endregion basic utility functions
 #------------------------------------------------------------------------------+

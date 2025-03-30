@@ -1,12 +1,6 @@
 #------------------------------------------------------------------------------+
-import threading, queue, logging
-from atconstants import AT_APP_NAME, AT_LOG_FILE, AT_DEFAULT_CONFIG_FILE
-import at_utilities.at_utils as atu
-from at_utilities import at_events as atev
-from at_utilities.at_utils import pfx as pfx
- 
 '''
-ATEvents is a module that contains classes for managing events in the
+Module at_atevents contains classes for managing events in the
 Activity Tracker application. The module contains classes for managing a 
 queue of events, the events themselves, and a signal event to signal the
 processing of the queue of events. The module also contains a singleton class 
@@ -27,11 +21,25 @@ event handler functions.
 TODO: Expand to multiple worker threads for each event type with its own queue 
 and signal event callback method.
 '''
-logger = logging.getLogger(AT_APP_NAME)  # create logger for the module
-logger.debug(f"Imported module: {__name__}")
-logger.debug(f"{__name__} Logger name: {logger.name}, Level: {logger.level}")
 
 
+import logging
+from atconstants import AT_APP_NAME, AT_LOG_FILE, AT_DEFAULT_CONFIG_FILE
+from at_utilities.at_logging import setup_logging
+import at_utilities.at_utils as atu
+
+# Setup loggin for AT
+if __name__ == "__main__":
+    p = atu.pfx()
+    logger = setup_logging(AT_APP_NAME)
+    logger.debug(f"{p}Imported module: {__name__}")
+    logger.debug(f"{p} Logging initialized.")
+
+import threading, queue
+import at_utilities.at_utils as atu
+from at_utilities import at_events as atev
+from at_utilities.at_utils import pfx as pfx
+ 
 #------------------------------------------------------------------------------+
 #region class ATEventSignal
 class ATSignalEvent (threading.Event):
@@ -128,7 +136,7 @@ class ATViewEvent(ATEvent):
     '''Event class for events published by the AT View.'''
     def __init__(self, event_name = None, event_data = None):
         super().__init__(event_name, event_data)
-##endregion class ATViewEvent        
+#endregion class ATViewEvent        
 #------------------------------------------------------------------------------+
         
 
@@ -358,6 +366,8 @@ class ATEventManager():
 #------------------------------------------------------------------------------+
 #region local debugging code
 if __name__ == "__main__":
+
+    # Debug tests for the ATEventManager and related classes
     myEM = ATEventManager()
     myEM.start()  # Start the event manager thread
 
