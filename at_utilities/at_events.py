@@ -3,6 +3,7 @@ import threading, queue, logging
 from atconstants import AT_APP_NAME, AT_LOG_FILE, AT_DEFAULT_CONFIG_FILE
 import at_utilities.at_utils as atu
 from at_utilities import at_events as atev
+from at_utilities.at_utils import pfx as pfx
  
 '''
 ATEvents is a module that contains classes for managing events in the
@@ -188,7 +189,7 @@ class ATEventManager():
     A single background thread processes the event queues. The thread waits for
     events to be published to the queues. When an event is published, the 
     a threading.Event is used to signal the background thread to process the
-    event queue. A threading.Loclk is used to ensure thread-safe access to the
+    event queue. A threading.RLock is used to ensure thread-safe access to the
     event queues in self.event_queues.
     TODO: Expand to multiple signal events for various event types with their
     own event queues.
@@ -197,59 +198,85 @@ class ATEventManager():
     def __init__(self):
         self.event_queues = {}
         self.signal_event = threading.Event()
+        self.stop_event = threading.Event()  # To stop event manager threads
         self.running = False
         self.event_thread = threading.Thread(name="ATEventManagerThread", 
                             daemon=True, target=self.process_events_loop)
-        self.lock = threading.Lock()  # For thread-safe access to event queues
+        self.lock = threading.RLock()  # For thread-safe access to event queues
 
     def start(self):
         '''Start the event manager thread'''
-        cn = ATEventManager.__name__; tp = atu.ptid(); p = f"{tp}:{cn}.start()"
+        p = pfx(self)
         print(f"{p} starting event manager.")
         if not self.event_thread.is_alive():
-            self.event_thread.start()
             self.running = True
+            self.event_thread.start()
             t = self.event_thread.native_id
-            print(f"{p} started worker thread {t}.")
+            print(f"\n{p} started worker thread {t}.")
+
+    def stopped(self) -> bool:
+        '''Check if the event manager stop event is set'''
+        return self.stop_event.is_set()
+    
+    def total_events(self) -> int:
+        '''Returns the total number of events in all event queues'''
+        ecount = 0
+        for eq in self.event_queues.values(): ecount += eq.qsize()
+        return ecount
+
+    def stop(self):
+        '''Stop the event manager threads'''
+        p = pfx(self)
+        print(f"{p} stopping event manager.")
+        self.stop_event.set()  # Set stop_event to signal worker threads to stop
 
     def process_events_loop(self):
-        '''Process the events in the event queue'''
-        cn = ATEventManager.__name__; tp = atu.ptid(); p = f"{tp}:{cn}.process_events_loop()"
-        print(f"{p} Entry: self.running = {self.running}.")
-        while self.running:
-            print(f"{p} running=True.")
+        '''Main loop to Process events from event queues'''
+        p = pfx(self)
+        print(f"{p} Entry: self.stopped() = {self.stopped()}.")
+        # Runs until the self.stopped() method returns True, 
+        # indicating that the self.stop_signal has been set.
+        while not self.stopped():  # Loop until stop_event is set
+            print(f"{p} wait for and process next event.")
             if self.signal_event.is_set():
-                print(f"{p} signal_event.is_set():True.")
+                print(f"{p} signal_event.is_set()={self.signal_event.is_set()}.")
                 all_queues_empty = True
-                for event_type in self.event_queues:
-                    event_queue = self.event_queues[event_type]
-                    while not event_queue.empty():
+                eqount = len(self.event_queues)
+                ecount = self.total_events()
+                print(f"{p} process '{ecount}' events in {eqount} queues.")
+                for et in self.event_queues:
+                    eq = self.event_queues[et]
+                    while not eq.empty():
+                        print(f"{p} process queue {et}" + \
+                              f".count={eq.qsize()} ")
                         # Get an event from the queue until none are left
-                        event = event_queue.get()
+                        event = eq.get()
                         self.process_an_event(event)
                         all_queues_empty = False 
+                    print(f"{p} finished queue {et}" + \
+                          f".count={eq.qsize()}")
                 # clear signal event when queues are empty
                 if all_queues_empty:  
                     self.signal_event.clear()
                     print(f"{p} signal_event.clear().")
             else:
-                to = 5.0
-                print(f"{p} signal_event.is_set():True.")
-                print(f"{p} signal_event.wait({to}).")
+                to = 2.0
+                # print(f"{p} signal_event.is_set():False.")
+                # print(f"{p} signal_event.wait({to}).")
                 self.signal_event.wait(to)
-                print(f"{p} signal_event.wait({to}) expired.")
-        print(f"{p} Exit: self.running = {self.running}.")
+                # print(f"{p} signal_event.wait({to}) expired.")
+        print(f"{p} Exit: self.Stopped = {self.stopped}.")
  
     def process_an_event(self, event):
         '''Process an event by calling the event's callback method'''
-        cn = ATEventManager.__name__; tp = atu.ptid(); p = f"{tp}:{cn}.process_an_event()"
-        tn = type(event).__name__; en = event.event_name; ed = event.event_data 
-        print(f"{p}process_an_event(): {tn}[event_name='{en}', event_data='{ed}']")
+        p = pfx(self)
+        et = type(event).__name__; en = event.event_name; ed = event.event_data 
+        print(f"{p}process_an_event(): {et}[event_name='{en}', event_data='{ed}']")
         match type(event):
             case atev.ATViewEvent:
-                print(f"{p}{tn} event processing")
+                print(f"{p}{et} event processing")
             case atev.ATEvent:
-                print(f"{p}{tn} event processing")
+                print(f"{p}{et} event processing")
             case _:
                 pass
         return
@@ -259,9 +286,18 @@ class ATEventManager():
         If the queue already exists, return it.
         If the queue does not exist and create is True, create the event queue. 
         If the queue does not exist and create is False, return None.'''
+        p = pfx(self)
+        print(f"{p} Entry: event_type='{event_type}', create={create}, " \
+              f"event_queues({len(self.event_queues)})=" \
+                f"{list(self.event_queues.keys())}")
         with self.lock:  # Ensure thread-safe access to event queues
+            print(f"{p} Returning existing event queue for event type: " \
+                      f"{event_type}.")
             if event_type in self.event_queues:
-                return self.event_queues[event_type]
+                eq = self.event_queues[event_type]
+                print(f"{p} Returning existing event queue for event type: " \
+                      f"{event_type}.")
+                return eq
             elif create:
                 if self.add_event_queue(event_type):
                     return self.event_queues[event_type]
@@ -273,27 +309,36 @@ class ATEventManager():
     def add_event_queue(self, event_type : str):
         '''Add an event_queue to the EventManager for event_type if not
         already added.'''
-        with self.lock:
-            # This lock ensures that only one thread can modify the event_queues at a time
-            cn = ATEventManager.__name__; tp = atu.ptid(); p = f"{tp}:{cn}.add_event_queue()"
-            print(f"{p} Adding event queue for event type: {event_type}")
+        p = pfx(self)
+        print(f"{p} Entry: event_type='{event_type}' " + \
+              f"event_queues({len(self.event_queues)})=" + \
+              f"{list(self.event_queues.keys())}")
+        with self.lock: # Lock for one thread modifies event_queues at a time
             # Check if the event type already exists in the event queues
             if isinstance(event_type, str) and not event_type in self.event_queues :
                 # Add the event queue for event type if not already there.
                 self.event_queues[event_type] = ATEventQueue()
+                print(f"{p} Added event queue for event type: {event_type}" + \
+                      f"event_queues({len(self.event_queues)})=" + \
+                      f"{list(self.event_queues.keys())}")
                 # True when new queue is added
                 return True
             else:
+                print(f"{p} NOT Added event queue for event type: " + \
+                      f"{event_type}" + \
+                      f"event_queues({len(self.event_queues)})=" + \
+                      f"{list(self.event_queues.keys())}")
                 return False
 
     def publish(self, event: ATEvent):
         '''Publish an event to the event queue based on the event type'''
-        p = atu.ptid()  # process/thread id
-        # Add the event to the indicated event queue.
-        et = type(event).__name__
-        en = event.event_name
+        p = pfx(self)
+        et = type(event).__name__; en = event.event_name
+        print(f"{p}:Entry event=[{et}.{en}]")
+        # Add the event to the appropriate event queue based on event type.
         if self.get_event_queue(en):
-            self.event_queues[en].put(event)
+            with self.lock:
+                self.event_queues[en].put(event)
             print(f"{p}:Published Event[{et}.{en}] to queue: ")
 
         # Signal the event queue to process the event
@@ -316,23 +361,26 @@ if __name__ == "__main__":
     myEM = ATEventManager()
     myEM.start()  # Start the event manager thread
 
-    # Create and publish events
-    event1 = ATEvent("EventType1", {"key1": "value1"})
-    event2 = ATEvent("EventType1", {"key2": "value2"})
-    event3 = ATEvent("EventType2", {"key3": "value3"})
-
-    # Allow some time for events to be processed
     import time
     time.sleep(2)
 
+    # Create and publish events
+    event1 = ATEvent("EventType1", {"key1": "value1"})
+    event2 = ATEvent("EventType2", {"key2": "value2"})
+    event3 = ATEvent("EventType3", {"key3": "value3"})
+
+    # Allow some time for events to be processed
+    time.sleep(2)
+
     myEM.publish(event1)
+    time.sleep(2)  # Allow some time for events to be processed
     myEM.publish(event2)
+    time.sleep(2)  # Allow some time for events to be processed
     myEM.publish(event3)
 
     time.sleep(2)  # Allow some time for events to be processed
 
     # Stop the event manager
-    myEM.running = False
-    myEM.signal_event.set()  # Wake up the thread to exit
+    myEM.stop()
 #endregion local debugging code
 

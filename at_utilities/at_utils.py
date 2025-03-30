@@ -1,6 +1,6 @@
 #------------------------------------------------------------------------------+
 # at_utils.py
-import datetime,threading, os
+import datetime,threading, os, inspect
 #------------------------------------------------------------------------------+
 # Often when working with dates and times, where calculating time interval 
 # durations with a start and stop time, the units of the duration value will
@@ -268,7 +268,22 @@ def ptid()->str:
 #endregion
 
 #region
+def mn():
+    import sys
+    rv = sys._getframe(1).f_code.co_name if hasattr(sys, "_getframe") and sys._getframe(1) else "<unknown>"
+    # rv = str(inspect.currentframe().f_code.co_name)
+    return rv + "()"
 #endregion
 
+#region
+def pfx(o :object) -> str:
+    import sys
+    pt = ptid()
+    cn = o.__class__.__name__ if hasattr(o, "__class__") else "<unknown>"
+    mn = sys._getframe(1).f_code.co_name if hasattr(sys, "_getframe") and sys._getframe(1) else "<unknown>"
+    rv = f"{pt}:{cn}.{mn}()"
+    # rv = str(inspect.currentframe().f_code.co_name)
+    return rv 
+#endregion
 
 #------------------------------------------------------------------------------+
