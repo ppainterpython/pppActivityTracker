@@ -272,14 +272,21 @@ def ptid()->str:
 #endregion
 
 #region pfx()
-def pfx(o :object=None) -> str:
+def pfx(o :object=None, mn :str="unknown") -> str:
     '''"""Return a prefix string for logging including PID:TID, module/class,
     and function names.'''
     import sys
     pt = ptid() #; me = o if o is not None else __name__
-    cn = o.__class__.__name__ if o is not None and hasattr(o, "__class__") else __name__
-    mn = sys._getframe(1).f_code.co_name if hasattr(sys, "_getframe") and sys._getframe(1) else "<unknown>"
-    rv = f"{pt}:{cn}.{mn}()"
+    rv = ""
+    if o is not None:
+        cn = o.__class__.__name__ if o is not None and hasattr(o, "__class__") else __name__
+        mn = sys._getframe(1).f_code.co_name if hasattr(sys, "_getframe") and sys._getframe(1) else "<unknown>"
+        rv = f"{pt}:{cn}.{mn}()"
+    elif mn is not None and isinstance(mn, str) and len(mn) > 0:
+        # Use the provided method name (mn) for the function name
+        cf = inspect.currentframe().f_back # Get the caller's frame
+        fn = cf.f_code.co_name if cf and hasattr(cf, 'f_code') else __name__ 
+        rv = f"{pt}:{mn}.{fn}()"
     # rv = str(inspect.currentframe().f_code.co_name)
     return rv 
 #endregion 

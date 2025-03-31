@@ -546,19 +546,35 @@ def test_ptid():
     assert isinstance(ptid_value,str), \
         f"ptid() returned type '{type(ptid_value).__name__}' instead of str"
     # Check if the ptid is in the format [pid:tid] where pid and tid are integers
-    pattern = r'^\[\d+:\d+\]$'
+    pattern = r'^\[(\d+):(\d+)\]$' # test for pattern like "[19283:1234]""
     m = re.compile(pattern)
-    # Check if the ptid is an integer and greater than 0
-    assert m.match(ptid_value), "ptid() returned incorrect format."
-#endregion 
+    # Check if the ptid is correct format and expected value
+    match = m.match(ptid_value)
+    assert match, "ptid() returned incorrect format."
+    assert pid == int(match.group(1)), \
+        f"ptid() returned pid '{int(match.group(1))}' does not match '{pid}'"
+    assert tid == int(match.group(2)), \
+        f"ptid() returned tid '{int(match.group(2))}' does not match '{tid}'"
+#endregion  
 
 #region test_pfx()
 def test_pfx():
     """Test pfx() function """
-    ptid_value = atu.ptid()
-    # Check if the ptid is an integer and greater than 0
-    assert isinstance(ptid_value,  str), f"ptid() returned type '{type(ptid_value).__name__}' instead of int"
-    assert ptid_value > 0, f"ptid() returned a non-positive value: {ptid_value}"
+    pfx_value = atu.pfx()
+    # Check if the pfx_value is a str with correct format of content
+    assert isinstance(pfx_value,  str), f"ptid() returned type '{type(pfx_value).__name__}' instead of int"
+    pattern = r'^\[(\d+):(\d+)\]$' # test for pattern like "[19283:1234]""
+    m = re.compile(pattern)
+    # Check if the ptid is correct format and expected value
+    match = m.match(ptid_value)
+    assert match, "ptid() returned incorrect format."
+    assert pid == int(match.group(1)), \
+        f"ptid() returned pid '{int(match.group(1))}' does not match '{pid}'"
+    assert tid == int(match.group(2)), \
+        f"ptid() returned tid '{int(match.group(2))}' does not match '{tid}'"
+
+
+
 #endregion 
 
 #endregion basic utility functions

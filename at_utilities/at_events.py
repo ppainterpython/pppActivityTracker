@@ -28,7 +28,7 @@ from atconstants import AT_APP_NAME, AT_LOG_FILE, AT_DEFAULT_CONFIG_FILE
 from at_utilities.at_logging import setup_logging
 import at_utilities.at_utils as atu
 
-# Setup loggin for AT
+# Setup logging for AT
 if __name__ == "__main__":
     p = atu.pfx()
     logger = setup_logging(AT_APP_NAME)
