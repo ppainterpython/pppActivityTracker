@@ -177,7 +177,7 @@ class FileATModel(ATModel):
         # Raises ValueError or TypeError as appropriate.
         with open(self.validate_activity_store_uri(activity_store_uri), 'r') as file:
             data = json.load(file)
-            self.__activityname = data['activityname']
+            self.activityname = data['activityname']
             self.activities = [ActivityEntry(**ae) for ae in data['activities']]
             self.created_date = data['created_date']
             self.last_modified_date = data['last_modified_date']

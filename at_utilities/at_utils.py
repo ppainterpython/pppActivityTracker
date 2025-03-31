@@ -1,6 +1,6 @@
 #------------------------------------------------------------------------------+
 # at_utils.py
-import datetime,threading, os, inspect
+import datetime,threading, os, inspect, sys
 #------------------------------------------------------------------------------+
 # Often when working with dates and times, where calculating time interval 
 # durations with a start and stop time, the units of the duration value will
@@ -290,6 +290,19 @@ def pfx(o :object=None, mn :str="unknown") -> str:
     # rv = str(inspect.currentframe().f_code.co_name)
     return rv 
 #endregion 
+
+#region is_running_in_pytest()
+def is_running_in_pytest() -> bool:
+    """Check if the code is running in pytest."""
+    # Check if pytest is in the stack trace
+    if "PYTEST_CURRENT_TEST" in os.environ:
+        return True
+    if 'pytest' in sys.modules: return True
+    for frame in inspect.stack():
+        if "pytest" in frame.filename:
+            return True
+    return False
+#endregion is_running_in_pytest()
 
 #endregion basic utility functions
 #------------------------------------------------------------------------------+

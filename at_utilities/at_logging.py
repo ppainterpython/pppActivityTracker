@@ -14,21 +14,21 @@ import at_utilities.at_utils as atu
 
 #------------------------------------------------------------------------------+
 #region Configure logging
-_logger_initialized = False
+at_logging_initialized = False
 _logging_lock = threading.Lock()
 def setup_logging(logger_name: str = AT_APP_NAME) -> logging.Logger:
     """Set up logging for both stdout and a log file (thread-safe singleton)."""
     p = atu.pfx()
-    global _logger_initialized
+    global at_logging_initialized
 
     with _logging_lock:  # Ensure thread-safe access to the logger setup
-        if _logging_initialized:
+        if at_logging_initialized:
             logger.debug(f"{p} Logging handlers initialized. First log message.")
             return logging.getLogger(logger_name)
         logger = logging.getLogger(logger_name)
         logger.setLevel(logging.DEBUG)  # Set the global logging level
 
-        _logging_initialized = True
+        at_logging_initialized = True
 
         # debug to learn
         root_logger = logging.getLogger()
@@ -78,15 +78,6 @@ if __name__ == "__main__":
     logger.debug(f"Imported module: {__name__}")
     logger.debug(f"main.{__name__} Logging initialized.")
 #endregion setup_logging()
-#------------------------------------------------------------------------------+
-
-#region is_running_in_pytest()
-def is_running_in_pytest() -> bool:
-    """Check if the code is running in pytest."""
-    # This function checks if the pytest module is in sys.modules
-    # which indicates that pytest is running the tests.
-    return 'pytest' in sys.modules
-#endregion is_running_in_pytest()
 #------------------------------------------------------------------------------+
 
 #------------------------------------------------------------------------------+
