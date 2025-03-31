@@ -1,4 +1,6 @@
 #-----------------------------------------------------------------------------+
+# test_at_logging.py
+#-----------------------------------------------------------------------------+
 import logging, sys
 from atconstants import AT_APP_NAME
 from at_utilities.at_logging import setup_logging
@@ -31,6 +33,7 @@ def test_logging_setup(caplog):
 
     # Our test strategy requires the log messages to propagate
     # and show up in caplog.text.
+    test_logger.propagate = True
     assert test_logger.propagate, \
         f"{tf}test_logger({test_logger.name}).propagate is False, " + \
         "cannot test log messages without propagage True."
