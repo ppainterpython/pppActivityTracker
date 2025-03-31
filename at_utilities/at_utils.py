@@ -267,12 +267,14 @@ def current_timestamp() -> str:
 #------------------------------------------------------------------------------+
 #region ptid()
 def ptid()->str:
-    """Return the current process:thread id."""
+    """Return the current [processID:threadID]."""
     return f"[{os.getpid()}:{threading.get_native_id()}]"
 #endregion
 
 #region pfx()
 def pfx(o :object=None) -> str:
+    '''"""Return a prefix string for logging including PID:TID, module/class,
+    and function names.'''
     import sys
     pt = ptid() #; me = o if o is not None else __name__
     cn = o.__class__.__name__ if o is not None and hasattr(o, "__class__") else __name__
