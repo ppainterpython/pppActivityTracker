@@ -1,18 +1,16 @@
 #-----------------------------------------------------------------------------+
 # file_atmodel.py
 import getpass, json, pathlib
-from dataclasses import dataclass, field, asdict
 from abc import ABC, abstractmethod
 from typing import List
 import at_utilities.at_utils as atu
 from model.ae import ActivityEntry
 from model.base_atmodel.atmodel import ATModel
-from model.atmodelconstants import TE_DEFAULT_DURATION, TE_DEFAULT_DURATION_SECONDS
+from model.atmodelconstants import TE_DEFAULT_DURATION, \
+    TE_DEFAULT_DURATION_SECONDS, FATM_DEFAULT_ACTIVITY_STORE_URI
 
-FATM_DEFAULT_ACTIVITY_STORE_URI = "activity.json"  # default filename for saving
-
-@dataclass(kw_only=True)
 class FileATModel(ATModel):
+    #region FileATModel Class doc string
     """
     A class to represent the complete Activity Tracking model for a user.
     FileATModel is a concrete implementation of base abstract class ATModel.
@@ -47,24 +45,39 @@ class FileATModel(ATModel):
     ---------------------------------------------------
 
     """
-    #region FileATModel Class
+    #endregion FileATModel Class doc string
+    #region FileATModel attributes
+    # Note: Using ATModel as an abstract base class ATModel, requires
+    # the abstract property method implementation. Hence, each attribute
+    # is defined as a @property and @property.setter method using the
+    # private underscore convention.
     #-------------------------------------------------------------------------+
-    # class constructor
+    # FileATModel class constructor __init__() method
     #-------------------------------------------------------------------------+
-    def __init__(self, activityname=None, activities=None, created_date=None, \
-                 last_modified_date=None, modified_by=None, activity_store_uri=None):
-        # Private Property attributes
-        self._activityname = activityname
-        self._activities = activities if activities is not None else []
-        self._created_date = created_date if created_date is not None else "2025-03-22T14:42:49.300051"
-        self._last_modified_date = last_modified_date if last_modified_date is not None else "2025-03-22T14:42:49.301397"
-        self._modified_by = modified_by if modified_by is not None else "ppain"
-        self._activity_store_uri = activity_store_uri if activity_store_uri is not None else FATM_DEFAULT_ACTIVITY_STORE_URI
+    def __init__(self,  activityname: str = None, 
+                        activities: List[ActivityEntry] = None,
+                        created_date: str = None,
+                        last_modified_date: str = None,
+                        modified_by: str = None,
+                        activity_store_uri: str = None) -> None:
+        # Private Property attributes initialization
+        # Do some validation of the input parameters with defaults assigned
+        self._activityname = atu.str_or_none(activityname)
+        self._activities = []
+        self._created_date = atu.timestamp_str_or_default(created_date)
+        self._last_modified_date = \
+            atu.stop_str_or_default(last_modified_date,self.created_date)
+        self._modified_by = modified_by \
+            if atu.str_notempty(modified_by) else getpass.getuser()
+        self._activity_store_uri = activity_store_uri \
+            if atu.str_notempty(activity_store_uri) else FATM_DEFAULT_ACTIVITY_STORE_URI
+        # Public Property attributes initialization
+    #-------------------------------------------------------------------------+
 
     def to_dict(self):
         '''Return self FileATModel object as a dictionary, with the activities
         list converted to a list of dictionaries.'''
-        return {
+        ret = {
             "activityname": self.activityname,
             "activities": [ae.__dict__ for ae in self.activities],
             "created_date": self.created_date,
@@ -72,9 +85,27 @@ class FileATModel(ATModel):
             "modified_by": self.modified_by,
             "activity_store_uri": self.activity_store_uri
         }
+        return ret
 
-    def __str__(self):
-        return f"ActivityEntry(activityname='{self.activityname}')"
+    def __repr__(self) -> str:
+        ''' Return a string representation of the FileATModel object '''
+        ret = f"FileATModel(activityname='{self.activityname}', "
+        ret += f"activities=[{', '.join([str(ae) for ae in self.activities])}], "
+        ret += f"created_date='{self.created_date}', "
+        ret += f"last_modified_date='{self.last_modified_date}', "
+        ret += f"modified_by='{self.modified_by}', "
+        ret += f"activity_store_uri='{self.activity_store_uri}')"
+        return ret
+
+    def __str__(self) -> str:
+        """ Return a string representation of the FileATModel object """
+        ret = f"FileATModel(activityname='{self.activityname}', "
+        ret += f"activities=[{', '.join([str(ae) for ae in self.activities])}], "
+        ret += f"created_date='{self.created_date}', "
+        ret += f"last_modified_date='{self.last_modified_date}', "
+        ret += f"modified_by='{self.modified_by}', "
+        ret += f"activity_store_uri='{self.activity_store_uri}')"
+        return ret
     #endregion FileATModel Class  
 
     #-------------------------------------------------------------------------+
@@ -152,8 +183,8 @@ class FileATModel(ATModel):
         # If activity_store_uri is None or "", the default filename is used.
         # Raises TypeError as appropriate.
         with open(self.validate_activity_store_uri(activity_store_uri), 'w') as file:
-            data = asdict(self)
-            data['activities'] = [asdict(ae) for ae in self.activities]
+            data = self.to_dict()
+            # data['activities'] = [asdict(ae) for ae in self.activities]
             json.dump(data, file, indent=4)
         return True
 

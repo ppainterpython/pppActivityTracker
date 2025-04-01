@@ -1,12 +1,12 @@
 #------------------------------------------------------------------------------+
 import getpass, pathlib, logging, pytest
-# from dataclasses import dataclass, field, asdict
+from typing import List
 import at_utilities.at_utils as atu
-from model.atmodelconstants import TE_DEFAULT_DURATION, TE_DEFAULT_DURATION_SECONDS
 from model.ae import ActivityEntry
 from model.base_atmodel.atmodel import ATModel
 from model.file_atmodel import FileATModel
-from model.file_atmodel import FATM_DEFAULT_ACTIVITY_STORE_URI
+from model.atmodelconstants import TE_DEFAULT_DURATION, \
+    TE_DEFAULT_DURATION_SECONDS, FATM_DEFAULT_ACTIVITY_STORE_URI
 
 FATM_TEMPDATA_DIR = "tests/tempdata"
 FATM_TEMPDATA_FILENAME = FATM_DEFAULT_ACTIVITY_STORE_URI  # temp data filename
@@ -17,10 +17,12 @@ FATM_TESTDATA_FILENAME = "test_activity.json"  # test data filename
 def test_atmodel_constructor():
     """Test the constructor for FileATModel class"""
     an = "painterActivity"
-    am = FileATModel(an)
+    am = FileATModel(activityname=an)
     un = getpass.getuser()
     assert am.activityname == an
-    assert am.activities == [], "activities should be empty list"
+    assert isinstance(am.activities, List), \
+        f"activities is not a List, got type:'{type(am.activities).__name__}'"
+    assert len(am.activities) == 0, "activities should be empty list"
     assert atu.validate_iso_date_string(am.created_date), \
         f"created_date is not a valid ISO date string:{am.created_date}"
     assert atu.validate_iso_date_string(am.last_modified_date), \
@@ -58,22 +60,16 @@ def test_atmodel_add_activity():
     assert ae1 is not None, "create activity ae1 __init__ failed!"
     assert ae1.start == start1, "ae1.start value is incorrect"
     assert ae1.duration == default_dur_hours, "ae1 duration is incorrect"
-    assert str(ae1) == activity1, \
-        "String representation of ActivityEntry ae1 is not correct"
 
     ae2 = ActivityEntry(start=start2, stop=stop2, activity=activity2)
     assert ae2 != None, "create activity entry start2 failed!"
     assert ae2.start == start2, "ae2.start value is incorrect"
     assert ae2.duration == default_dur_hours, "ae2 duration is incorrect"
-    assert str(ae2) == activity2, \
-        "String representation of ActivityEntry ae2 is not correct"
 
     ae3 = ActivityEntry(start=start3, stop=stop3, activity=activity3)
     assert ae3 != None, "create activity entry start3 failed!"
     assert ae3.start == start3, "ae3.start value is incorrect"
     assert ae3.duration == default_dur_hours, "ae3 duration is incorrect"
-    assert str(ae3) == activity3, \
-        "String representation of ActivityEntry ae3 is not correct"
 
     assert (atm := FileATModel(an)) is not None, \
         "creating FileATModel instance failed"

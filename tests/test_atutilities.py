@@ -3,6 +3,7 @@ import pytest, os, threading, re
 from typing import List
 import at_utilities.at_utils as atu
 
+#------------------------------------------------------------------------------+
 #region ISO Date Utilities
 
 #region test_iso_date_string()
@@ -191,7 +192,9 @@ def test_to_float():
         atu.to_float("quark")
 #endregion test_to_float()
 #endregion ISO Date Utilities
+#------------------------------------------------------------------------------+
 
+#------------------------------------------------------------------------------+
 #region Timestamp Helper Functions
 
 #region test_validate_start()
@@ -533,6 +536,63 @@ def test_current_timestamp():
 #endregion test_current_timestamp()
 
 #endregion Timestamp Helper Functions
+#------------------------------------------------------------------------------+
+
+#------------------------------------------------------------------------------+
+#region attribute validation function tests
+#------------------------------------------------------------------------------+
+#region test_notempty()
+def test_str_notempty():
+    """Test the str_notempty function."""
+    # Test with valid non-empty string
+    assert atu.str_notempty("valid string"), \
+        "str_notempty() failed for valid non-empty string"
+    
+    # Test with empty string
+    assert not atu.str_notempty(""), \
+        "str_notempty() failed for empty string"
+
+    # Test with None value
+    assert not atu.str_notempty(None), \
+        "str_notempty() failed for None value"
+
+    # Test with whitespace string
+    assert atu.str_notempty("   "), \
+        "str_notempty() failed for whitespace string"
+
+    # Test with invalid type (e.g., int, list, dict)
+    assert not atu.str_notempty(123), \
+        "str_notempty() failed for integer value"
+    assert not atu.str_notempty([]), \
+        "str_notempty() failed for empty list"
+    assert not atu.str_notempty({}), \
+        "str_notempty() failed for empty dictionary"
+#endregion test_notempty()
+
+#region test_str_or_none()
+def test_str_or_none():
+    """Test the str_or_none function."""
+    # Test with valid string
+    assert atu.str_or_none("valid string") == "valid string", \
+        "str_or_none() failed for valid string"
+
+    # Test with None value
+    assert atu.str_or_none(None) is None, \
+        "str_or_none() failed for None value"
+
+    # Test with empty string
+    assert atu.str_or_none("") is None, \
+        "str_or_none() failed for empty string"
+
+    # Test with invalid type (e.g., int, list, dict)
+    assert atu.str_or_none(123) is None, \
+        "str_or_none() failed for integer value"
+    assert atu.str_or_none([]) is None, \
+        "str_or_none() failed for empty list"
+    assert atu.str_or_none({}) is None, \
+        "str_or_none() failed for empty dictionary"
+#endregion test_str_or_none()
+#------------------------------------------------------------------------------+
 
 #------------------------------------------------------------------------------+
 #region basic utility functions

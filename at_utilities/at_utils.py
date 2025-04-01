@@ -109,6 +109,44 @@ def to_float(value) -> float:
 #------------------------------------------------------------------------------+
 
 #------------------------------------------------------------------------------+
+#region attribute validation functions
+def str_empty(value: str) -> bool:
+    """Check if a string is not empty."""
+    # Check if the value is a string and not empty
+    if value is None or not isinstance(value, str) or len(value) == 0:
+        return True
+    return False
+
+def str_notempty(value: str) -> bool:
+    """Check if a string is not empty."""
+    # Check if the value is a string and not empty
+    return not str_empty(value)
+
+def str_or_none(value: str) -> str:
+    """Return value if non-empty str, else return None."""
+    # Check if the value is a string and not empty
+    return value if str_notempty(value) else None
+
+def timestamp_str_or_default(value: str) -> str:
+    """Return value if non-empty str, else return current timestamp."""
+    # Check if the value is a string and not empty
+    # If not, return the current timestamp as an ISO string
+    return value if str_notempty(value) and validate_iso_date_string(value) \
+        else now_iso_date_string()
+
+def stop_str_or_default(value: str, start: str) -> str:
+    """Return value if non-empty str, else return current timestamp."""
+    # Return the value if a non-empty, valid ISO timestamp string.
+    # If value is None or empty, return default stop time, computed from
+    # start time if valid. If start time invalid, return default timestamp. 
+    if str_notempty(value) and validate_iso_date_string(value):
+         return value
+    if str_empty(value): return default_stop_time(start)
+    return now_iso_date_string()
+#endregion attribute validation functions
+#------------------------------------------------------------------------------+
+
+#------------------------------------------------------------------------------+
 #region Timestamp helper functions
 
 #region validate_start()
@@ -120,9 +158,9 @@ def validate_start(strt: str) -> str:
         t = type(strt).__name__
         m = f"Invalid type for strt input value: type:'{t}' = {strt}"
         raise TypeError(m)
-    # If dt is None or empty string, default to time now
-    if (strt is None) or (len(strt) == 0): return default_start_time()
-    # If dt is a valid ISO string, return it, else raise ValueError
+    # If strt is None or empty string, default to time now
+    if str_empty(strt): return default_start_time()
+    # If strt is a valid ISO string, return it, else raise ValueError
     if validate_iso_date_string(strt): return strt
     #endregion
 
@@ -131,16 +169,16 @@ def validate_stop(strt: str, stp: str) -> str:
     """Validate stop time for ActivityEntry constructor."""
     # Returns a valid ISO format date string for the stop time
     # Uses strt to determine the default stop time if stp is None or invalid
-    # If either strt or stp are not type str}None, raise TypeError
+    # If either strt or stp are not type str or None, raise TypeError
     # If strt or stp are type str but not valid ISO strings, raise ValueError
     # If stp is not type None or str, raise TypeError
     typenames = (type(None), str)
     s = validate_start(strt) # ValueError raised if invalid strt
     # If stp is None or empty string, default to time now
     if isinstance(stp, typenames):
-        if (stp is None) or (len(stp) == 0): return default_stop_time(s)
+        if str_empty(stp): return default_stop_time(s) 
         # If stp is valid ISO string, return it
-        if validate_iso_date_string(stp): return stp
+        if validate_iso_date_string(stp): return stp 
     else:
         raise TypeError(f"type:str required for stp, not type: {type(stp).__name__}")
 #endregion
