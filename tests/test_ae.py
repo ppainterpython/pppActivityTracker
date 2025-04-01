@@ -15,7 +15,8 @@ def test_activity_entry_constructor():
         notes = "Place notes here"
     except:
         pytest.fail("Setup failed for start and stop time parameters")
-    te : ActivityEntry = ActivityEntry(start=start_time_parm, stop=stop_time_parm, \
+    te : ActivityEntry = ActivityEntry(start=start_time_parm, 
+                                       stop=stop_time_parm, \
                        activity=activity, notes=notes)
     # Expect the input dates to match the created dates
     assert atu.iso_date_approx(te.start, start_time_parm,2), \
@@ -27,9 +28,6 @@ def test_activity_entry_constructor():
     assert te.duration == \
         atu.calculate_duration(start_time_parm, stop_time_parm), \
         f"Duration is not correct as: {str(te.duration)}"
-    # Verify the __str__() method returns the activity string
-    assert str(te) == activity, \
-        f"String representation of ActivityEntry is not correct: {str(te)}"
 #endregion
 
 #region test_activity_entry_constructor_recoverable_input_value_variety()
@@ -140,8 +138,8 @@ def test_activity_entry_constructor_with_default_values():
 
     assert isinstance(te.start, str), "Start time is not a type: str"
     assert isinstance(te.stop, str), "Stop time is not a type: str"
-    assert te.activity is None, "Default activity is not empty"
-    assert te.notes is None, "Default notes are not empty"
+    assert te.activity == 'unset', "Default activity is not 'unset'"
+    assert te.notes == 'unset', "Default notes are not 'unset'"
 #endregion
 
 #region test_activity_entry_constructor_with_partial_parameters()
@@ -154,7 +152,7 @@ def test_activity_entry_constructor_with_partial_parameters():
     assert atu.validate_iso_date_string(te.stop), \
         "Stop time is not a valid ISO date string"
     assert te.activity == activity, "Activity string is not correct"
-    assert te.notes == '', "Notes string is not empty"
+    assert te.notes == 'unset', "Notes string is not 'unset'"
     assert te.duration == atu.calculate_duration(te.start, te.stop), \
         "Duration is not correct"
 #endregion

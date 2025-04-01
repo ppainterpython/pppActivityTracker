@@ -560,22 +560,67 @@ def test_ptid():
 #region test_pfx()
 def test_pfx():
     """Test pfx() function """
+
+    # Test 1: atu.pfx(mn=__name__)
+    pfx_value = atu.pfx(mn=__name__)
+    # Check if the pfx_value is a str with correct format of content
+    # Will be like '''[35312:8996]:tests.test_atutilities.test_pfx()'' 
+    # with different pid,tid
+    pattern = r'(^\[\d+:\d+\]):(.*)\.(.*)$'
+    g2 = __name__; g3 = 'test_pfx()'
+    m = re.compile(pattern)
+    match = m.match(pfx_value)
+    assert match, \
+        f"pfx() returned format '{pfx_value}', " + \
+            "expected like '[25424:20684]:unknown.test_pfx()'"
+    assert match.group(2) == g2, \
+        f"pfx() returned '{match.group(2)}' instead of '{g2}'"
+    assert match.group(3) == g3, \
+        f"pfx() returned '{match.group(2)}' instead of '{g3}'"
+
+    # Test 2: atu.pfx()
     pfx_value = atu.pfx()
     # Check if the pfx_value is a str with correct format of content
-    assert isinstance(pfx_value,  str), f"ptid() returned type '{type(pfx_value).__name__}' instead of int"
-    pattern = r'^\[(\d+):(\d+)\]$' # test for pattern like "[19283:1234]""
+    # Will be like ''[25424:20684]:unknown.test_pfx()' with different pid,tid
+    pattern = r'(^\[\d+:\d+\]):(.*)\.(.*)$'
     m = re.compile(pattern)
-    # Check if the ptid is correct format and expected value
-    match = m.match(ptid_value)
-    assert match, "ptid() returned incorrect format."
-    assert pid == int(match.group(1)), \
-        f"ptid() returned pid '{int(match.group(1))}' does not match '{pid}'"
-    assert tid == int(match.group(2)), \
-        f"ptid() returned tid '{int(match.group(2))}' does not match '{tid}'"
+    match = m.match(pfx_value)
+    assert match, \
+        f"pfx() returned format '{pfx_value}', " + \
+            "expected like '[25424:20684]:unknown.test_pfx()'"
+    
+    # Test 3: atu.pfx(__name__, __file__)
+    class pfx_test:
+        def __init__(self):
+            self.pfx = atu.pfx(self)
+    pfx_value = pfx_test().pfx
+    # Check if the pfx_value is a str with correct format of content
+    # Will be like ''[11984:39768]:pfx_test.__init__()'' with different pid,tid
+    g2 = 'pfx_test'; g3 = '__init__()'
+    pattern = r'(^\[\d+:\d+\]):(.*)\.(.*)$'
+    m = re.compile(pattern)
+    match = m.match(pfx_value)
+    retval = match.group(0)
+    assert match, \
+        f"pfx() returned format '{pfx_value}', " + \
+            "expected like '[25424:20684]:unknown.test_pfx()'"
+    assert match.group(2) == g2, \
+        f"pfx() returned '{match.group(2)}' instead of '{g2}'"
+    assert match.group(3) == g3, \
+        f"pfx() returned '{match.group(2)}' instead of '{g3}'"
+#endregion test_pfx() 
 
+#region test_is_running_in_pytest()
+def test_is_running_in_pytest():
+    """Test the is_running_in_pytest function"""
+    assert atu.is_running_in_pytest(), f"is_running_in_pytest() returned False"
+    assert atu.is_running_in_pytest(1), f"is_running_in_pytest() returned False"
+    assert atu.is_running_in_pytest(2), f"is_running_in_pytest() returned False"
+    assert atu.is_running_in_pytest(3), f"is_running_in_pytest() returned False"
+    assert not atu.is_running_in_pytest(4), f"is_running_in_pytest() returned False"
+    assert not atu.is_running_in_pytest('not int'), f"is_running_in_pytest() returned False"
 
-
-#endregion 
+#endregion  test_is_running_in_pytest()
 
 #endregion basic utility functions
 #------------------------------------------------------------------------------+

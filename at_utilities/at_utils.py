@@ -292,15 +292,17 @@ def pfx(o :object=None, mn :str="unknown") -> str:
 #endregion 
 
 #region is_running_in_pytest()
-def is_running_in_pytest() -> bool:
+def is_running_in_pytest(test:int=1) -> bool:
     """Check if the code is running in pytest."""
     # Check if pytest is in the stack trace
-    if "PYTEST_CURRENT_TEST" in os.environ:
+    if not isinstance(test, int): return False
+    if test == 1 and "PYTEST_CURRENT_TEST" in os.environ:
         return True
-    if 'pytest' in sys.modules: return True
-    for frame in inspect.stack():
-        if "pytest" in frame.filename:
-            return True
+    if test == 2 and 'pytest' in sys.modules: return True
+    if test == 3:
+        for frame in inspect.stack():
+            if "pytest" in frame.filename:
+                return True
     return False
 #endregion is_running_in_pytest()
 
