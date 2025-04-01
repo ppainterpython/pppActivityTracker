@@ -140,8 +140,8 @@ def test_activity_entry_constructor_with_default_values():
 
     assert isinstance(te.start, str), "Start time is not a type: str"
     assert isinstance(te.stop, str), "Stop time is not a type: str"
-    assert te.activity == '', "Default activity is not empty"
-    assert te.notes == '', "Default notes are not empty"
+    assert te.activity is None, "Default activity is not empty"
+    assert te.notes is None, "Default notes are not empty"
 #endregion
 
 #region test_activity_entry_constructor_with_partial_parameters()

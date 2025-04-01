@@ -40,13 +40,28 @@ class ActivityEntry:
     time. 
     """
 
-    #-------------------------------------------------------------------------+
+    #--------------------------------------------------------------------------+
     #region ActivyEntery Class
-    start: str = field(default=None)
-    stop: str = field(default=None)
-    activity: str = field(default='')
-    notes: str = field(default='')
-    duration: float = field(default=0.0) # duration in hours as float
+    # constructor for ActivityEntry class
+    def __init__(self, start:str=None, stop:str=None, activity:str=None,
+                 notes:str=None):
+        """Constructor for class ActivityEntry
+        
+        Parameters
+        ----------
+        start : str
+            ISO format date and time an activity starts. If none, current time is used
+        stop : str
+            ISO format date and time an activity stops. If none, current time is used
+        activity : str
+        notes : str
+        """
+        self._start: str = atu.validate_start(start)
+        self._stop: str = atu.validate_stop(self.start, stop)
+        self._activity: str = activity
+        self._notes: str = notes
+        self._duration: float = atu.calculate_duration(self.start, self.stop)
+
     # post init function to validate start, stop and calculate duration
     def __post_init__(self):
         """Full parameters Constructor for class ActivityEntry
@@ -60,12 +75,46 @@ class ActivityEntry:
         activity : str
         notes : str
         """
-        self.start = atu.validate_start(self.start)
-        self.stop = atu.validate_stop(self.start, self.stop)
-        self.duration = atu.calculate_duration(self.start, self.stop) # duration in hours as float
+        self.start: str = atu.validate_start(self.start)
+        self.stop: str = atu.validate_stop(self.start, self.stop)
+        activity: str = ''
+        notes: str = ''
+        self.duration: float = atu.calculate_duration(self.start, self.stop) # duration in hours as float
                                                
     def __str__(self):
         return f"{self.activity}"
     #endregion
-
-    #-------------------------------------------------------------------------+
+    #--------------------------------------------------------------------------+
+    #region ActivityEntry Properties
+    @property
+    def start(self) -> str:
+        return self._start
+    @start.setter
+    def start(self, value: str) -> None:
+        self._start = atu.validate_start(value)
+    @property
+    def stop(self) -> str:
+        return self._stop
+    @stop.setter
+    def stop(self, value: str) -> None:
+        self._stop = atu.validate_stop(self.start, value)
+    @property
+    def activity(self) -> str:
+        return self._activity
+    @activity.setter
+    def activity(self, value: str) -> None:
+        self._activity = value
+    @property
+    def notes(self) -> str:
+        return self._notes
+    @notes.setter
+    def notes(self, value: str) -> None:
+        self._notes = value
+    @property
+    def duration(self) -> float:
+        return self._duration
+    @duration.setter
+    def duration(self, value: float) -> None:
+        self._duration = atu.calculate_duration(self.start, self.stop)
+    #endregion
+    #--------------------------------------------------------------------------+

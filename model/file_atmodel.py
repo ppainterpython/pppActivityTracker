@@ -49,21 +49,11 @@ class FileATModel(ATModel):
     """
     #region FileATModel Class
     #-------------------------------------------------------------------------+
-    # Private Property attributes
-    #-------------------------------------------------------------------------+
-    # For ATModel abstract base class property values
-    _activityname: str = ""
-    _activities: List[ActivityEntry]
-    _created_date: str = None
-    _last_modified_date: str = None
-    _modified_by: str = ""
-    _activity_store_uri: str = FATM_DEFAULT_ACTIVITY_STORE_URI  # default URI for saving
-    # For FileATModel, activity_store_uri is a pathname to a file.
-    #-------------------------------------------------------------------------+
     # class constructor
     #-------------------------------------------------------------------------+
     def __init__(self, activityname=None, activities=None, created_date=None, \
                  last_modified_date=None, modified_by=None, activity_store_uri=None):
+        # Private Property attributes
         self._activityname = activityname
         self._activities = activities if activities is not None else []
         self._created_date = created_date if created_date is not None else "2025-03-22T14:42:49.300051"
