@@ -134,15 +134,36 @@ def timestamp_str_or_default(value: str) -> str:
     return value if str_notempty(value) and validate_iso_date_string(value) \
         else now_iso_date_string()
 
-def stop_str_or_default(value: str, start: str) -> str:
-    """Return value if non-empty str, else return current timestamp."""
-    # Return the value if a non-empty, valid ISO timestamp string.
-    # If value is None or empty, return default stop time, computed from
-    # start time if valid. If start time invalid, return default timestamp. 
-    if str_notempty(value) and validate_iso_date_string(value):
-         return value
-    if str_empty(value): return default_stop_time(start)
-    return now_iso_date_string()
+def is_not_str_or_none(value: str = None) -> bool:
+    """Negative test if value is None or str, return False, else return True."""
+    if value is None: return False # None is acceptable
+    if  isinstance(value, str): return False
+    return True
+
+def stop_str_or_default(stop: str = None, start: str = None) -> str:
+    '''Goal is to bless the stop value as a valid stop timestamp string.
+    If it is a string that validates as an ISO timestamp, Return stop value.
+    If it is None or empty, return the default stop time based on the 
+    start time. The start timestamp is also validated and defaulted.
+    If stop value is not type str or None, raise TypeError.
+    Same for start, if start is None or empty, it defaults to now().
+    If either stop or start are validated as strings but not valid ISO strings,
+    raise ValueError.'''
+    if is_not_str_or_none(stop):
+        t = type(stop).__name__
+        raise TypeError(f"stop must be type:str or None, not type: {t}")
+    if is_not_str_or_none(start):
+        t = type(start).__name__
+        raise TypeError(f"start must be type:str or None, not type: {t}")
+    # Return the stop if a non-empty, valid ISO timestamp string.
+    if str_notempty(stop) and validate_iso_date_string(stop): return stop
+    # if both timestamp stops are empty or invalid types, default to 
+    # current timestamp.
+    if str_empty(stop) and str_empty(start): return now_iso_date_string()
+    # if stop is empty but start is valid, use start to calculate the 
+    # default stop timestamp.
+    if str_empty(stop): return default_stop_time(start)
+    # Exception must have been raised by now, so we never arrive here.
 #endregion attribute validation functions
 #------------------------------------------------------------------------------+
 
@@ -185,7 +206,7 @@ def validate_stop(strt: str, stp: str) -> str:
 
 #region increase_time()
 def increase_time(tval : str=now_iso_date_string(), hours : int = 0, \
-                  minutes : int = 0, seconds : int = 0) -> float:
+                  minutes : int = 0, seconds : int = 0) -> str:
     """Increase the time by a given number of hours, minutes and seconds."""
     # TODO: handle leap year offset
     if not isinstance(tval, str):
@@ -203,7 +224,7 @@ def increase_time(tval : str=now_iso_date_string(), hours : int = 0, \
 
 #region decrease_time()
 def decrease_time(tval : str=now_iso_date_string(), hours : int = 0, \
-                  minutes : int = 0, seconds : int = 0) -> float:
+                  minutes : int = 0, seconds : int = 0) -> str:
     """Decrease the time by a given number of hours, minutes and seconds."""
     # TODO: handle leap year offset
     if not isinstance(tval, str):

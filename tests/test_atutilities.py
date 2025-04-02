@@ -592,6 +592,88 @@ def test_str_or_none():
     assert atu.str_or_none({}) is None, \
         "str_or_none() failed for empty dictionary"
 #endregion test_str_or_none()
+
+#region test_stop_str_or_default()
+def test_stop_str_or_default():
+    """Test the stop_str_or_default function."""
+    tn = atu.now_iso_date_string()
+    defduration = atu.default_duration("minutes")
+    validstop = tn
+    validstart = atu.decrease_time(validstop, minutes=defduration)
+    # Test with valid string
+    assert atu.stop_str_or_default(validstop) == validstop, \
+        "stop_str_or_default() failed for valid stop timestamp:'{validstop}'"
+    # Test with None value
+    assert (v := atu.stop_str_or_default(None)) and \
+            atu.iso_date_approx(v,tn,120), \
+        f"stop_str_or_default(stop=None, start=None " + \
+        f"returned incorrect stop='{v}'"
+    # Test with "" value
+    assert (v := atu.stop_str_or_default("")) and \
+            atu.iso_date_approx(v,tn,120), \
+        f"stop_str_or_default(stop=\"\", start=None " + \
+        f"returned incorrect stop='{v}'"
+    assert (v := atu.stop_str_or_default(None, None)) and \
+            atu.iso_date_approx(v,tn,120), \
+        f"stop_str_or_default(stop=None, start='{validstart}' " + \
+        f"returned incorrect stop='{v}'"
+    d = (defduration + 3) * 60 # value in seconds
+    assert (v := atu.stop_str_or_default(None, validstart)) and \
+            atu.iso_date_approx(validstart, validstop,d), \
+        f"stop_str_or_default(stop=None, start='{validstart}' " + \
+        f"returned incorrect stop='{v}'"
+    # Test with invalid ISO date strings
+    with pytest.raises(ValueError):
+        atu.stop_str_or_default("invalid-date")
+    with pytest.raises(ValueError):
+        atu.stop_str_or_default(None, "invalid-date")
+
+    # Test with invalid type (e.g., int, list, dict)
+    with pytest.raises(TypeError):
+        atu.stop_str_or_default(123)
+    with pytest.raises(TypeError):
+        atu.stop_str_or_default([])
+    with pytest.raises(TypeError):
+        atu.stop_str_or_default(None, 123)
+    with pytest.raises(TypeError):
+        atu.stop_str_or_default(None, [])
+#endregion test_stop_str_or_default()
+
+#region test_timestamp_str_or_default()
+def test_timestamp_str_or_default():
+    """Test the timestamp_str_or_default function."""
+    tn = atu.now_iso_date_string()
+    # Test with valid string
+    assert atu.timestamp_str_or_default(tn) == tn, \
+        "timestamp_str_or_default() failed for valid timestamp:'{tn}'"
+
+    # Test with None value, should return now()
+    assert (v := atu.timestamp_str_or_default(None)) and \
+            atu.iso_date_approx(v, tn, 120), \
+        f"timestamp_str_or_default(None) returned incorrect timestamp='{v}'"
+
+    # Test with "" value, should return now()
+    assert (v := atu.timestamp_str_or_default("")) and \
+            atu.iso_date_approx(v, tn, 120), \
+        f"timestamp_str_or_default(\"\") returned incorrect timestamp='{v}'"
+
+    # Test with invalid ISO date strings
+    with pytest.raises(ValueError):
+        atu.timestamp_str_or_default("invalid-date")
+
+    # Test with invalid type (e.g., int, list, dict)
+    assert (v := atu.timestamp_str_or_default(123)) and \
+            atu.iso_date_approx(tn, v,2), \
+        f"atu.timestamp_str_or_default(123) " + \
+        f"returned incorrect timestamp='{v}'"
+        
+    assert (v := atu.timestamp_str_or_default([])) and \
+            atu.iso_date_approx(tn, v,2), \
+        f"atu.timestamp_str_or_default([]) " + \
+        f"returned incorrect timestamp='{v}'"
+        
+#endregion test_timestamp_str_or_default()
+#region attribute validation function tests
 #------------------------------------------------------------------------------+
 
 #------------------------------------------------------------------------------+
