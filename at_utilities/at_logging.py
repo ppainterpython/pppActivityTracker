@@ -23,6 +23,7 @@ def setup_logging(logger_name: str = AT_APP_NAME) -> logging.Logger:
 
     with _logging_lock:  # Ensure thread-safe access to the logger setup
         if at_logging_initialized:
+            logger = logging.getLogger(logger_name)
             logger.debug(f"{p} Logging handlers initialized. First log message.")
             return logging.getLogger(logger_name)
         logger = logging.getLogger(logger_name)

@@ -63,7 +63,7 @@ class FileATModel(ATModel):
         # Private Property attributes initialization
         # Do some validation of the input parameters with defaults assigned
         self._activityname = atu.str_or_none(activityname)
-        self._activities = []
+        self._activities = FileATModel.valid_activities_list(activities)
         self._created_date = atu.timestamp_str_or_default(created_date)
         self._last_modified_date = \
             atu.stop_str_or_default(last_modified_date,self.created_date)
@@ -76,10 +76,10 @@ class FileATModel(ATModel):
 
     def to_dict(self):
         '''Return self FileATModel object as a dictionary, with the activities
-        list converted to a list of dictionaries.'''
+        list converted to a list of dictionaries for each ActivityEntry obj.'''
         ret = {
             "activityname": self.activityname,
-            "activities": [ae.__dict__ for ae in self.activities],
+            "activities": [ae.to_dict() for ae in self.activities],
             "created_date": self.created_date,
             "last_modified_date": self.last_modified_date,
             "modified_by": self.modified_by,
@@ -90,13 +90,13 @@ class FileATModel(ATModel):
     def __repr__(self) -> str:
         ''' Return a string representation of the FileATModel object '''
         ret = f"FileATModel(activityname='{self.activityname}', "
-        ret += f"activities=[{', '.join([str(ae) for ae in self.activities])}], "
+        ret += f"activities=[{', '.join([repr(ae) for ae in self.activities])}], "
         ret += f"created_date='{self.created_date}', "
         ret += f"last_modified_date='{self.last_modified_date}', "
         ret += f"modified_by='{self.modified_by}', "
         ret += f"activity_store_uri='{self.activity_store_uri}')"
         return ret
-
+    
     def __str__(self) -> str:
         """ Return a string representation of the FileATModel object """
         ret = f"FileATModel(activityname='{self.activityname}', "
@@ -183,9 +183,7 @@ class FileATModel(ATModel):
         # If activity_store_uri is None or "", the default filename is used.
         # Raises TypeError as appropriate.
         with open(self.validate_activity_store_uri(activity_store_uri), 'w') as file:
-            data = self.to_dict()
-            # data['activities'] = [asdict(ae) for ae in self.activities]
-            json.dump(data, file, indent=4)
+            json.dump(self.to_dict(), file, indent=4)
         return True
 
     def get_atmodel(self, activity_store_uri:str) -> None:
@@ -203,6 +201,7 @@ class FileATModel(ATModel):
             self.created_date = data['created_date']
             self.last_modified_date = data['last_modified_date']
             self.modified_by = data['modified_by']
+            self.activity_store_uri = data['activity_store_uri'] 
 
     def validate_activity_store_uri(self, activity_store_uri:str) -> pathlib.Path:
         """ Validate the provided activity activity_store_uri.
@@ -232,6 +231,25 @@ class FileATModel(ATModel):
     def default_creation_date() -> str:
         """ Return the current date and time as a ISO format string """
         return atu.now_iso_date_string()
-
     #endregion
+
+    @staticmethod
+    def valid_activities_list(al : List[ActivityEntry]) -> List[ActivityEntry]:
+        """
+        Validate the input activities list, ensuring each entry is an 
+        ActivityEntry instance or the list is empty.
+        Returns the validated list or raises TypeError or ValueError 
+        if validation fails.
+        """
+        if al is None: return []
+        if not isinstance(al, list):
+            raise TypeError("activities must be a list of ActivityEntry instances")
+        if len(al) == 0:
+            # Allow empty list, return it as valid
+            return al
+        for ae in al:
+            if not isinstance(ae, ActivityEntry):
+                raise ValueError(f"Expected ActivityEntry instance, got {type(ae).__name__}")
+        return al
+    #-------------------------------------------------------------------------+
 

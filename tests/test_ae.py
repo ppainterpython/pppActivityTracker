@@ -4,7 +4,7 @@ from typing import List
 from pytest import approx
 import at_utilities.at_utils as atu
 from model.ae import ActivityEntry
-
+#todo: test change AE properties
 #region test_activity_entry_constructor()
 def test_activity_entry_constructor():
     """Basic test for ActivityEntry object with valid input values"""
@@ -156,4 +156,33 @@ def test_activity_entry_constructor_with_partial_parameters():
     assert te.duration == atu.calculate_duration(te.start, te.stop), \
         "Duration is not correct"
 #endregion
+
+#region test_activity_entry___STR__()
+def test_activity_entry___STR__():
+    '''Test the __str__() method of the ActivityEntry class to ensure it 
+    returns a human-readable string.'''
+    try:
+        start_time_parm = atu.default_start_time() 
+        stop_time_parm = atu.default_stop_time(start_time_parm)
+        activity = "learning"
+        notes = "Place notes here"
+    except:
+        pytest.fail("Setup failed for start and stop time parameters")
+    te : ActivityEntry = ActivityEntry(start=start_time_parm, 
+                                       stop=stop_time_parm, \
+                       activity=activity, notes=notes)
+    assert te is not None, \
+        "Failed to create ActivityEntry instance for testing __str__()"
+    assert isinstance(te, ActivityEntry), \
+        "The created object is not an instance of ActivityEntry"
+    strval = str(te)  # Call the __str__() method
+    assert isinstance(strval, str), \
+        f"The __str__() method did not return a string: {strval}"
+    reprval = repr(te)  # Call the __repr__() method for comparison
+    assert isinstance(reprval, str), \
+        f"The __repr__() method did not return a string: {reprval}"
+    dictval = te.to_dict()  # Call the to_dict() method for comparison
+    assert isinstance(dictval, dict), \
+        f"The to_dict() method did not return a dictionary: {dictval}"
+#endregion test_activity_entry___STR__()
 

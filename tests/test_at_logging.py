@@ -9,8 +9,13 @@ import at_utilities.at_utils as atu
 # Setup logging for AT compaitble with pytest and other modules
 p = atu.pfx(mn=__name__)
 logger = setup_logging(AT_APP_NAME)
-logger.debug(f"{p}Imported module: {__name__}")
-logger.debug(f"{p} Logging initialized.")
+if logger is None:
+    logger = logging.getLogger(AT_APP_NAME)  # fallback to default logger if setup failed
+    if logger is None:
+        logger = logging.getLogger()  # fallback to the root logger if all else fails
+if logger is not None:
+    logger.debug(f"{p}Imported module: {__name__}")
+    logger.debug(f"{p} Logging initialized.")
 
 # Conduct the tests
 import getpass, pathlib, pytest

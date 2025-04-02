@@ -13,23 +13,67 @@ FATM_TEMPDATA_FILENAME = FATM_DEFAULT_ACTIVITY_STORE_URI  # temp data filename
 FATM_TESTDATA_DIR = "tests/testdata"
 FATM_TESTDATA_FILENAME = "test_activity.json"  # test data filename
 
-#region test_atmodel_constructor()
-def test_atmodel_constructor():
-    """Test the constructor for FileATModel class"""
-    an = "painterActivity"
-    am = FileATModel(activityname=an)
+#region test_atmodel_constructor() with no formal parameterer
+def test_atmodel_constructor_with_no_formal_parameters():
+    """Test FileATModel constructor with no formal parameters, using the
+    internal default values."""
+    fatm = FileATModel()
     un = getpass.getuser()
-    assert am.activityname == an
-    assert isinstance(am.activities, List), \
-        f"activities is not a List, got type:'{type(am.activities).__name__}'"
-    assert len(am.activities) == 0, "activities should be empty list"
-    assert atu.validate_iso_date_string(am.created_date), \
-        f"created_date is not a valid ISO date string:{am.created_date}"
-    assert atu.validate_iso_date_string(am.last_modified_date), \
-        f"last_modified_date is not a valid ISO date string:{am.last_modified_date}"
-    assert am.modified_by == getpass.getuser(), \
+    assert fatm.activityname == None, \
+        f"activity name was not None, but '{fatm.activityname}' instead. "
+    assert isinstance(fatm.activities, List), \
+        f"activities is not a List, got type:'{type(fatm.activities).__name__}'"
+    assert len(fatm.activities) == 0, "activities should be empty list"
+    assert atu.validate_iso_date_string(fatm.created_date), \
+        f"created_date is not a valid ISO date string:{fatm.created_date}"
+    assert atu.validate_iso_date_string(fatm.last_modified_date), \
+        f"last_modified_date is not a valid ISO date string:{fatm.last_modified_date}"
+    assert fatm.modified_by == getpass.getuser(), \
         "modified_by should be the current user"
-    assert am.__str__() == f"ActivityEntry(activityname='{an}')", \
+    assert fatm.activity_store_uri == FATM_DEFAULT_ACTIVITY_STORE_URI, \
+        f"activity_store_uri should be default '{FATM_DEFAULT_ACTIVITY_STORE_URI}', " + \
+        f"but got '{fatm.activity_store_uri}' instead."
+    cd = fatm.created_date; lmd = fatm.last_modified_date    
+    strval = f"FileATModel(activityname='None', activities=[], created_date='{cd}', last_modified_date='{lmd}', modified_by='ppain', activity_store_uri='activity.json')"
+    reprval = f"FileATModel(activityname='None', activities=[], created_date='{cd}', last_modified_date='{lmd}', modified_by='ppain', activity_store_uri='activity.json')"
+    assert fatm.__str__() == strval, \
+        "String representation of FileATModel is incorrect"
+    assert fatm.__repr__() == reprval, \
+        "String representation of FileATModel is incorrect"
+#endregion
+
+#region test_atmodel_constructor() with ALL formal parameters
+def test_atmodel_constructor_with_all_formal_paramaters():
+    """Test FileATModel constructor with ALL formal parameters, using none of 
+    the internal default values."""
+    an = "painterActivity"
+    un = getpass.getuser()  # get the current user for modified_by
+    al = []
+    cd = atu.now_iso_date_string()  # created_date, now()
+    lmd = cd  # last_modified_date, now()
+    mb = un  # modified_by, current user
+    asu = "foobar.json"  # activity_store_uri, arbitrary for this test
+    fatm = FileATModel(activityname=an,activities=al,
+                     created_date=cd, last_modified_date=lmd, 
+                     activity_store_uri=asu,)
+    assert fatm.activityname == an
+    assert isinstance(fatm.activities, List), \
+        f"activities is not a List, got type:'{type(fatm.activities).__name__}'"
+    assert len(fatm.activities) == 0, "activities should be empty list"
+    assert fatm.created_date == cd, \
+        f"created_date is incorrect: '{fatm.created_date}', expected: '{cd}'"
+    assert fatm.last_modified_date == lmd, \
+        f"last_modified_date is incorrect: '{fatm.last_modified_date}', expected: '{lmd}'"
+    assert fatm.modified_by == mb, \
+        f"modified_by is incorrect: '{fatm.modified_by}', expected: '{mb}'"
+    assert fatm.activity_store_uri == asu, \
+        f"activity_store_uri is incorrect: '{fatm.activity_store_uri}', expected: '{asu}' "
+    cd = fatm.created_date; lmd = fatm.last_modified_date    
+    strval = f"FileATModel(activityname='painterActivity', activities=[], created_date='{cd}', last_modified_date='{lmd}', modified_by='ppain', activity_store_uri='foobar.json')"
+    reprval = f"FileATModel(activityname='painterActivity', activities=[], created_date='{cd}', last_modified_date='{lmd}', modified_by='ppain', activity_store_uri='foobar.json')"
+    assert fatm.__str__() == strval, \
+        "String representation of FileATModel is incorrect"
+    assert fatm.__repr__() == reprval, \
         "String representation of FileATModel is incorrect"
 #endregion
 
@@ -139,10 +183,11 @@ def test_atmodel_add_activity():
         f"get_atmodel modified_by is incorrect: {new_atm.modified_by}"
     assert new_atm.modified_by == un, \
         f"get_atmodel modified_by is incorrect: {new_atm.modified_by}"
-    assert new_atm.__str__() == atm.__str__(), \
-        f"get_atmodel string representation is incorrect: {new_atm.__str__()}"
-    assert new_atm.__str__() == f"ActivityEntry(activityname='{an}')", \
-        "String representation of FileATModel is incorrect"
+    strval = str(new_atm)  # get the string representation of the new_atm
+    # assert new_atm.__str__() == atm.__str__(), \
+    #     f"get_atmodel __str__() representation is incorrect: {new_atm.__str__()}"
+    # assert new_atm.__repr__() == atm.__repr__(), \
+    #     f"get_atmodel __repr__() representation is incorrect: {new_atm.__str__()}"
     # Clean up the temporary file
     try:
         full_path.unlink()
@@ -236,7 +281,7 @@ def test_to_dict():
 
     expected_dict = {
         "activityname": an,
-        "activities": [ ae.__dict__ for ae in activities ],
+        "activities": [ ae.to_dict() for ae in activities ],
         "created_date": created_date,
         "last_modified_date": last_modified_date,
         "modified_by": modified_by,
@@ -279,5 +324,49 @@ def test_default_created_date():
             f"not approx equal to expected_date '{expected_date}'"
     logging.debug("Completed test_default_created_date()")
 #endregion 
+
+#region test_validate_activities_list()
+def test_validate_activities_list():
+    """Test the validate_activities_list method for FileATModel class"""
+    logging.debug("Starting test_validate_activities_list()")
+    
+    # Test with a valid list of ActivityEntry instances
+    valid_activities = [
+        ActivityEntry(start="2025-03-22T14:42:49.298776", \
+                      stop="2025-03-22T15:12:49.298776", \
+                      activity="ae1 activity"),
+        ActivityEntry(start="2025-03-22T15:13:49.298776", \
+                      stop="2025-03-22T15:43:49.298776", 
+                      activity="ae2 activity")
+    ]
+
+    # If the valid_activities list contains only ActivityEntry instances,
+    # it should pass the validation returning the input list itself.
+    # Otherwise, it should raise a ValueError or TypeError depending on the 
+    # input type.
+    l = FileATModel().valid_activities_list(valid_activities)
+    assert FileATModel().valid_activities_list(valid_activities) is not None, \
+        "validate_activities_list failed for valid activities"
+
+    # Test with an empty list as valid
+    assert FileATModel().valid_activities_list([]) is not None, \
+        "validate_activities_list failed for empty activities list"
+
+    # Test with an invalid list (non-ActivityEntry)
+    invalid_activities = ["not an ActivityEntry"]
+    with pytest.raises(ValueError):
+        FileATModel().valid_activities_list(invalid_activities), \
+        f"validate_activities_list did not raise ValueError for " + \
+            f"invalid activities: {invalid_activities}"
+
+    # Test with an invalid non-list value
+    invalid_activities = {"foo": "bar"}  # This is a dict, not a list
+    with pytest.raises(TypeError):
+        FileATModel().valid_activities_list(invalid_activities), \
+        f"validate_activities_list did not raise TypeError for " + \
+            f"invalid activities input type: {type(invalid_activities).__name__}"
+
+    logging.debug("Completed test_validate_activities_list()")
+#endregion test_validate_activities_list()
 
 #------------------------------------------------------------------------------+

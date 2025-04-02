@@ -71,6 +71,36 @@ class ActivityEntry:
             else self.activity
         self.notes: str = 'unset' if self.notes is None or len(self.notes) == 0 \
             else self.notes
+
+    def to_dict(self) -> dict:
+        """
+        Convert the ActivityEntry instance to a dictionary representation.
+        This is useful for serialization or logging purposes. 
+        """
+        ret = {
+            'start': self.start,
+            'stop': self.stop,
+            'activity': self.activity,
+            'notes': self.notes,
+            'duration': self.duration
+        }
+        return ret
+    
+    def __repr__(self) -> str:
+        """
+        String representation of the ActivityEntry instance for debugging.
+        """
+        return (f"ActivityEntry(start='{self.start}', stop='{self.stop}', "
+                f"activity='{self.activity}', notes='{self.notes}', "
+                f"duration={self.duration:.2f})")
+    
+    def __str__(self):
+        """
+        Human-readable string representation of the ActivityEntry instance.
+        This is used when printing the object directly. 
+        """
+        return (f"ActivityEntry: {self.activity} from {self.start} to {self.stop}, "
+                f"Duration: {self.duration:.2f} hours, Notes: {self.notes}")
     #endregion ActivityEntry Class __post_init__() method 
     #--------------------------------------------------------------------------+
     #endregion ActivityEntry Class
