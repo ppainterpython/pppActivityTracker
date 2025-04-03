@@ -1,16 +1,22 @@
 #------------------------------------------------------------------------------+
 import logging, sys
 from atconstants import AT_APP_NAME, AT_LOG_FILE
-from at_utilities.at_logging import setup_logging
+from at_utilities.at_logging import atlogging_setup
 #------------------------------------------------------------------------------+
-#region setup_logging()
 
-# Initialize logging for the application
+# When running under the VSCode Python Debugger, the argv[0] is the full path to the
+# and will look something like this:
+# 'c:\\Users\\ppain\\.vscode\\extensions\\ms-python.python-2025.2.0-win32-x64\\python_files\\vscode_pytest\\run_pytest_script.py'
+#region atlogging_setup()
+
+argv = sys.argv
+app_full_path = argv[0] if len(argv) > 1 else "unknown"
+
 if __name__ == "__main__":
-    logger = setup_logging(AT_APP_NAME)
+    logger = atlogging_setup(AT_APP_NAME)
     logger.debug(f"Imported module: {__name__}")
     logger.debug(f"main.{__name__} Logging initialized.")
-#endregion setup_logging()
+#endregion atlogging_setup()
 #------------------------------------------------------------------------------+
 
 from view import atview 

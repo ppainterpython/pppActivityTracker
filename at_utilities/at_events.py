@@ -25,13 +25,13 @@ and signal event callback method.
 
 import logging
 from atconstants import AT_APP_NAME, AT_LOG_FILE, AT_DEFAULT_CONFIG_FILE
-from at_utilities.at_logging import setup_logging
+from at_utilities.at_logging import atlogging_setup
 import at_utilities.at_utils as atu
 
 # Setup logging for AT
 if __name__ == "__main__":
     p = atu.pfx()
-    logger = setup_logging(AT_APP_NAME)
+    logger = atlogging_setup(AT_APP_NAME)
     logger.debug(f"{p}Imported module: {__name__}")
     logger.debug(f"{p} Logging initialized.")
 

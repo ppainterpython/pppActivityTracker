@@ -1,6 +1,6 @@
 import logging
 from atconstants import AT_LOG_FILE, AT_APP_NAME
-from at_utilities.at_logging import setup_logging
+from at_utilities.at_logging import atlogging_setup
 import at_utilities.at_utils as atu
 import at_utilities.at_utils as is_running_in_pytest
 
@@ -12,15 +12,15 @@ def pytest_configure(config):
     p = atu.pfx(mn=__name__)  # Use the module name for the prefix
     # Disable pytest's default logging handlers
     root_logger = logging.getLogger()
-    print(f"{p}Root logger handlers before setup_logging({len(root_logger.handlers)}): {root_logger.handlers}")
+    print(f"{p}Root logger handlers before atlogging_setup({len(root_logger.handlers)}): {root_logger.handlers}")
     root_logger.handlers.clear()
     print(f"{p}Root logger handlers after clear({len(root_logger.handlers)}): {root_logger.handlers}")
 
     # Set up logging
     # logger = logging.getLogger(AT_APP_NAME)
-    logger = setup_logging(AT_APP_NAME)
+    logger = atlogging_setup(AT_APP_NAME)
     # logger.setLevel(logging.DEBUG)
-    logger.debug(f"{p}Root logger handlers after setup_logging({len(root_logger.handlers)}): {root_logger.handlers}")
+    logger.debug(f"{p}Root logger handlers after atlogging_setup({len(root_logger.handlers)}): {root_logger.handlers}")
     root_logger = logging.getLogger()
     root_logger.handlers.clear()
     logger.debug(f"{p}Root logger handlers after clear({len(root_logger.handlers)}): {root_logger.handlers}")

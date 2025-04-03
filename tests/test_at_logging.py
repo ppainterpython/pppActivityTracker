@@ -3,12 +3,12 @@
 #-----------------------------------------------------------------------------+
 import logging, sys
 from atconstants import AT_APP_NAME
-from at_utilities.at_logging import setup_logging
+from at_utilities.at_logging import atlogging_setup
 import at_utilities.at_utils as atu
 
 # Setup logging for AT compaitble with pytest and other modules
 p = atu.pfx(mn=__name__)
-logger = setup_logging(AT_APP_NAME)
+logger = atlogging_setup(AT_APP_NAME)
 if logger is None:
     logger = logging.getLogger(AT_APP_NAME)  # fallback to default logger if setup failed
     if logger is None:
@@ -24,14 +24,14 @@ from atconstants import AT_APP_NAME # PPPACTIVITYTRACKER.constants for App
 #region test_logging_setup()
 def test_logging_setup(caplog):
     '''Test the logging configuration of the PPPAcitivityTracker application'''
-    '''Import main.py and test the setup_logging() function'''
+    '''Import main.py and test the atlogging_setup() function'''
     # import atmain as m
 
     # prefix string for the test function (tf) name
     tf = atu.pfx(mn=__name__)  # Use the module name for the prefix
     logger.debug(f"{tf}Starting test")
-    # Test the setup_logging() function
-    test_logger = setup_logging(AT_APP_NAME)
+    # Test the atlogging_setup() function
+    test_logger = atlogging_setup(AT_APP_NAME)
     assert test_logger is not None, f"{tf}failed to return a logger"
     assert test_logger.name == AT_APP_NAME, \
         f"{tf}returned incorrect logger name: '{test_logger.name}'"
