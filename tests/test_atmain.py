@@ -30,8 +30,8 @@ def test_application_class():
     # Test the attributes of the Application class
     assert isinstance(app.atv, atmain.atview.ATView), \
         "ATView instance is not created or is of incorrect type"
-    assert isinstance(app.atvm, atmain.MainATModel.MainATModel), \
-        "MainATModel instance is not created or is of incorrect type"
+    assert isinstance(app.atvm, atmain.MainATViewModel), \
+        "MainATViewModel instance is not created or is of incorrect type"
 
     # Test the run() method
     # app.run()

@@ -2,17 +2,21 @@
 
 # pppActivityTracker
 
-Python tkinter GUI app to manage activity tracking for people.
+## Introduction
 
-Attributions included inline.
+For fun, ppp stands for Paul Painter Python. I created this project to spend sometime learning more about python. I have been writing software since the summer of 1978, using many different programming languages, IDEs, platforms and frameworks. There as some basic fundamentals common to everyone, like debugging, logging, user interface, etc. When I started on IBM mainframes in college, the only input source was punched cards and output was on a line printer.
+
+So, in this app, I spent time learning the most common and easy means to support logging to the console and a log file, storing data in files, using event-driven and multiple threads. I chose ttkbootstrap because it seemed easiest to learn and I am old enough to have used TCL/tk when it first was introduced.
+
+Also, I wanted to learn pytest and strive to keep all the unit tests running at 100% coverage. This project was just a hobby for me. If you find it helpful, please drop me a comment.
 
 ## Description
 
-For fun, ppp stands for Paul Painter Python. pppActivityTracker is a simple GUI App to enter activities in a log with a start and stop time, a short descriptor of an activity and additional notes. The duration of the activity in minutes is computed. Weekly summaries of the activities can be shown.
+pppActivityTracker is a simple GUI App to enter activities in a log with a start and stop time, a short descriptor of an activity and additional notes. The duration of the activity in minutes is computed. Weekly summaries of the activities can be shown.
 
 The data is stored in a local json file.
 
-An approximation of the MVVM pattern is employed. For starters, the viewmodel binds to the model using only a filename, or a simple json file binding. The main program defines an Application class which creates the view and the viewmodel supporting commands and properties.
+An approximation of the MVVM pattern is employed. For starters, the viewmodel binds to the model using only a uri and some abstract interfaces, in the first case, a filename, or a simple json file binding. The main program defines an Application class which creates the view and the viewmodel supporting commands and properties. I looked at a few projects out there for python MVVM apps, but nothing fit my need for simplicity.
 
 ## Project Structure
 
@@ -24,20 +28,37 @@ pppActivityTracker (project root)
 │   └── atmodel.py (ActivityTracker Model)
 │
 ├── viewmodel/
-│   └── MainATModel.py (Activity Tracker viewmodel)
+│   └── MainATViewModel.py (Activity Tracker viewmodel)
 │
 ├── view/
 │   ├── atview.py (Activity Tracker view)
 |   └── interfaces/
 │
 ├── tests/
-│   ├── test_ae.py (unit test for ActivityEntry dataclass)
-│   └── package2/
+│   ├── pytest.ini 
+│   ├── conftest.py 
+│   ├── test_ae.py 
+│   ├── test_events.py 
+│   ├── test_logging.py 
+│   ├── test_atutilities.py 
+│   ├── test_atviewmodel.py 
+│   └── file_atmodel.py/
+|
+├── at_utilities/
+│   ├── at_events.py 
+│   ├── at_logging.py (unit test for ActivityEntry dataclass)
+│   └── at_utils.py/
+|
+├── docs/
 |
 ├── README.md
 ├── requirements.txt
 └── main.py (The program main)
 ```
+
+### About Unit Testing and Logging
+
+Learning about pytest was fun. I worked hard to setup the project to support pytest runs both within vscode and stand-alone with a single fundtion to configure logging for all the scenarios. Also, I wanted to be able to debug any .py file stand-alone as well as from pytest "debug test" in vscode. That took some learning but seems to work well.
 
 ## MVVM Pattern Basics
 
@@ -175,7 +196,7 @@ flowchart LR
 | `FileATModel` | `model/file_atmodel.py`| Concrete implementation of ATModel class. FileATModel implements storage of the model in the local filesystem.|
 |`ActivityEntry`| `model/ae.py` | ActivityEntry is a dataclass for a single activity.|
 |`ATViewModel`|`viewmodel/base_atviewmodel/ATModel.py`| Activity Tracker base ViewModel class is the abstract class defining the interface for the ViewModel.|
-|`MainATViemModel`|`viewmodel/MainATModel.py`| A concreate implementation of the ATViewModel abstract class.|
+|`MainATViemModel`|`viewmodel/MainATViewModel.py`| A concreate implementation of the ATViewModel abstract class.|
 |`ATView`|`view/atview.py`| Top-level class of the View of the app. |
 |`Application`|`main.py`| Class for the singleton application object.|
 |``|``||

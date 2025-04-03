@@ -1,6 +1,7 @@
 #------------------------------------------------------------------------------+
 # at_utils.py
-import datetime,threading, os, inspect, sys
+import datetime,threading, os, inspect, sys, debugpy
+from typing import List
 #------------------------------------------------------------------------------+
 # Often when working with dates and times, where calculating time interval 
 # durations with a start and stop time, the units of the duration value will
@@ -106,65 +107,6 @@ def to_float(value) -> float:
         e.add_note(f"{type(e).__name__}: Cannot convert '{value}' to int")
         raise
 #endregion ISO 8601 Timestamp functional interface
-#------------------------------------------------------------------------------+
-
-#------------------------------------------------------------------------------+
-#region attribute validation functions
-def str_empty(value: str) -> bool:
-    """Check if a string is not empty."""
-    # Check if the value is a string and not empty
-    if value is None or not isinstance(value, str) or len(value) == 0:
-        return True
-    return False
-
-def str_notempty(value: str) -> bool:
-    """Check if a string is not empty."""
-    # Check if the value is a string and not empty
-    return not str_empty(value)
-
-def str_or_none(value: str) -> str:
-    """Return value if non-empty str, else return None."""
-    # Check if the value is a string and not empty
-    return value if str_notempty(value) else None
-
-def timestamp_str_or_default(value: str) -> str:
-    """Return value if non-empty str, else return current timestamp."""
-    # Check if the value is a string and not empty
-    # If not, return the current timestamp as an ISO string
-    return value if str_notempty(value) and validate_iso_date_string(value) \
-        else now_iso_date_string()
-
-def is_not_str_or_none(value: str = None) -> bool:
-    """Negative test if value is None or str, return False, else return True."""
-    if value is None: return False # None is acceptable
-    if  isinstance(value, str): return False
-    return True
-
-def stop_str_or_default(stop: str = None, start: str = None) -> str:
-    '''Goal is to bless the stop value as a valid stop timestamp string.
-    If it is a string that validates as an ISO timestamp, Return stop value.
-    If it is None or empty, return the default stop time based on the 
-    start time. The start timestamp is also validated and defaulted.
-    If stop value is not type str or None, raise TypeError.
-    Same for start, if start is None or empty, it defaults to now().
-    If either stop or start are validated as strings but not valid ISO strings,
-    raise ValueError.'''
-    if is_not_str_or_none(stop):
-        t = type(stop).__name__
-        raise TypeError(f"stop must be type:str or None, not type: {t}")
-    if is_not_str_or_none(start):
-        t = type(start).__name__
-        raise TypeError(f"start must be type:str or None, not type: {t}")
-    # Return the stop if a non-empty, valid ISO timestamp string.
-    if str_notempty(stop) and validate_iso_date_string(stop): return stop
-    # if both timestamp stops are empty or invalid types, default to 
-    # current timestamp.
-    if str_empty(stop) and str_empty(start): return now_iso_date_string()
-    # if stop is empty but start is valid, use start to calculate the 
-    # default stop timestamp.
-    if str_empty(stop): return default_stop_time(start)
-    # Exception must have been raised by now, so we never arrive here.
-#endregion attribute validation functions
 #------------------------------------------------------------------------------+
 
 #------------------------------------------------------------------------------+
@@ -318,7 +260,155 @@ def current_timestamp() -> str:
     return now_iso_date_string()
 #endregion
 
+#region timestamp_str_or_default()
+def timestamp_str_or_default(value: str) -> str:
+    """Return value if non-empty str, else return current timestamp."""
+    # Check if the value is a string and not empty
+    # If not, return the current timestamp as an ISO string
+    return value if str_notempty(value) and validate_iso_date_string(value) \
+        else now_iso_date_string()
+#endregion timestamp_str_or_default()
+
+#region stop_str_or_default()
+def stop_str_or_default(stop: str = None, start: str = None) -> str:
+    '''Goal is to bless the stop value as a valid stop timestamp string.
+    If it is a string that validates as an ISO timestamp, Return stop value.
+    If it is None or empty, return the default stop time based on the 
+    start time. The start timestamp is also validated and defaulted.
+    If stop value is not type str or None, raise TypeError.
+    Same for start, if start is None or empty, it defaults to now().
+    If either stop or start are validated as strings but not valid ISO strings,
+    raise ValueError.'''
+    if is_not_str_or_none(stop):
+        t = type(stop).__name__
+        raise TypeError(f"stop must be type:str or None, not type: {t}")
+    if is_not_str_or_none(start):
+        t = type(start).__name__
+        raise TypeError(f"start must be type:str or None, not type: {t}")
+    # Return the stop if a non-empty, valid ISO timestamp string.
+    if str_notempty(stop) and validate_iso_date_string(stop): return stop
+    # if both timestamp stops are empty or invalid types, default to 
+    # current timestamp.
+    if str_empty(stop) and str_empty(start): return now_iso_date_string()
+    # if stop is empty but start is valid, use start to calculate the 
+    # default stop timestamp.
+    if str_empty(stop): return default_stop_time(start)
+    # Exception must have been raised by now, so we never arrive here.
+    #endregion stop_str_or_default()
+
 #endregion Timestamp helper functions
+#------------------------------------------------------------------------------+
+
+#------------------------------------------------------------------------------+
+#region attribute validation functions
+def is_str_or_none(value: str = None) -> bool:
+    """Positive test for None or type: str, return True, else return false."""
+    if value is None: return True # None is acceptable
+    if  isinstance(value, str): return True # type: str is acceptable
+    return False # other types are False
+
+def is_not_str_or_none(value: str = None) -> bool:
+    """Negative test for None or str."""
+    return not is_str_or_none(value)
+
+def str_empty(value: str) -> bool:
+    """Check if a string is not empty."""
+    # Check if the value is a string and not empty. Treat None as empty.
+    if value is None or not isinstance(value, str) or len(value) == 0:
+        return True
+    return False
+
+def str_notempty(value: str) -> bool:
+    """Check if a string is not empty."""
+    # Check if the value is a string and not empty
+    return not str_empty(value)
+
+def str_or_none(value: str) -> str:
+    """Return value if non-empty str, else return None."""
+    # Check if the value is a string and not empty
+    return value if str_notempty(value) else None
+
+#region is_folder_in_path()
+def is_folder_in_path(foldername:str="",pathstr:str="") -> bool:
+    '''Check if the folder is in the system path.'''
+    if is_not_str_or_none(foldername) or \
+        is_not_str_or_none(pathstr): return False 
+    if (str_empty(foldername) or str_empty(pathstr)): return False
+    return True if foldername in pathstr.split(os.path.sep) else False
+#endregion is_folder_in_path()
+
+#region at_env_info)
+def at_env_info(callername:str="not provided",consoleprint:bool=False,
+                logger = None) -> tuple:
+    '''
+    Return a tuple with info about runtime environment.
+    Content: (callername, app_full_path, app_file_name, call_mode,   
+              "vscode_debug", "vscode_pytest", "pytest_debug_vscode",
+              "pytest")
+    '''
+    argv = sys.argv
+    # Full path to the application
+    app_full_path = argv[0] if len(argv) >= 1 else "unknown"
+
+    # python filename that was executed
+    app_file_name = os.path.basename(app_full_path)
+
+    # caller supplied value, shoule be __name__ of the caller
+    call_mode = "direct" if callername == "__main__" else "imported"
+
+    # vscode_debug: Check if the script is running in a VSCode debug environment
+    vscode_debug_mode_test: bool = \
+        "debugpy" in sys.modules and \
+        debugpy.is_client_connected()  
+        # app_file_name == "run_pytest_script.py" \
+    vscode_debug_mode = "vscode_debug" \
+        if vscode_debug_mode_test else "no vcode_debug"
+
+    # vscode_pytest: Running in a pytest environment in vscode non-debug mode
+    vscode_pytest_mode_test: bool = "pytest" in sys.modules
+    vscode_pytest_mode = "vscode_pytest" if vscode_pytest_mode_test \
+        else "no vscode_pytest"
+
+    # vscode_pytest_vscode: Running in a pytest environment in vscode debug mode
+    pytest_debug_vscode_mode_test: bool = \
+        is_folder_in_path("vscode_pytest", app_full_path) and \
+        app_file_name == "run_pytest_script.py" and \
+        "pytest" in sys.modules and \
+        "debugpy" in sys.modules
+    pytest_debug_vscode_mode = "pytest_debug_vscode" \
+        if pytest_debug_vscode_mode_test else "no pytest_debug_vscode"
+
+    # pytest: Running in pytest outside of vscode
+    pytest_mode = "pytest" if "pytest" in sys.modules else "no pytest"
+    temp = "PYTEST_CURRENT_TEST" in os.environ
+
+    ret: List = [callername]      # 0: callername
+    ret.append(app_full_path)     # 1: app_full_path
+    ret.append(app_file_name)     # 2: app_file_name
+    ret.append(call_mode)         # 3: call_mode
+    ret.append(vscode_debug_mode) # 4: vscode_debug_mode
+    ret.append(vscode_pytest_mode) # 5: vscode_pytest_mode
+    ret.append(pytest_debug_vscode_mode) # 6: pytest_debug_vscode_mode
+    ret.append(pytest_mode)       # 7: pytest_mode
+
+    ret_tuple = (ret)
+    if consoleprint:
+        print("========================")
+        print(f"Caller __name__: {callername}")
+        print(f"Application full path: {app_full_path}")
+        print(f"Application file name: {app_file_name}")
+        print(f"Call mode: {call_mode}")
+        print(f"vscode_debug_mode: {vscode_debug_mode}")
+        print(f"vscode_pytest_mode: {vscode_pytest_mode}")
+        print(f"pytest_debug_vscode_mode: {pytest_debug_vscode_mode}")
+        print(f"pytest_mode: {pytest_mode}")
+    if logger is not None:
+        p = pfx(callername)
+        logger.debug(f"{p}at_env_info)={ret_tuple}")
+    return tuple(ret) # Return a tuple with the values
+#endregion at_env_info)
+
+#endregion attribute validation functions
 #------------------------------------------------------------------------------+
 
 #------------------------------------------------------------------------------+
@@ -364,6 +454,7 @@ def is_running_in_pytest(test:int=1) -> bool:
                 return True
     return False
 #endregion is_running_in_pytest()
+
 
 #endregion basic utility functions
 #------------------------------------------------------------------------------+
