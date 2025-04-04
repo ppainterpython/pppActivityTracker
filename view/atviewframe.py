@@ -4,7 +4,7 @@ import tkinter as tk
 from tkinter import EventType, scrolledtext, StringVar, BooleanVar
 from tkinter import ttk
 from view.constants import ATV_FAINT_GRAY
-from atconstants import AT_APP_NAME, AT_LOG_FILE, AT_DEFAULT_CONFIG_FILE
+from atconstants import *
 
 ATV_DEFAULT_FILEPATH = "~/activity.json"  # default filename for saving
 
@@ -24,7 +24,7 @@ class ATViewFrame(ttk.Frame):
             Just maintain a reference to the datacontext from root.
     """
     #--------------------------------------------------------------------------+
-    #Region ATViewFrame class
+    #region ATViewFrame class
     #--------------------------------------------------------------------------+
     # DataContext property
     datacontext: object = None    # ATViewModel object used as datacontext

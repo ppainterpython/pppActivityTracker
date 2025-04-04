@@ -20,11 +20,11 @@ class ATViewModel(ABC):
     @property
     @abstractmethod
     def activity_store_uri(self):
-        return "activities.json"
+        raise NotImplementedError
     
     @activity_store_uri.setter
     @abstractmethod
     def activity_store_uri(self, value):
-        self.activity_store_uri = value
+        raise NotImplementedError
     
 

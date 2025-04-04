@@ -1,7 +1,18 @@
 #-----------------------------------------------------------------------------+
+from atconstants import *
+import at_utilities.at_utils as atu
+from at_utilities.at_logging import atlogging_setup 
+#------------------------------------------------------------------------------+
+#region atlogging_setup()
+# Configur logging before importing the primary application modules
+p=atu.pfx(mn=__name__)
+logger = atlogging_setup(AT_APP_NAME)
+logger.debug(f"{p}Imported module: {__name__}")
+logger.debug(f"{p}{__name__} Logging initialized.")
+#endregion atlogging_setup()
+#------------------------------------------------------------------------------+
 from viewmodel.base_atviewmodel.atviewmodel import ATViewModel
 from view import atview
-
 
 class MainATViewModel(ATViewModel):
     '''    MainATViewModel is a concrete subclass of ATModel, representing the
@@ -27,19 +38,26 @@ class MainATViewModel(ATViewModel):
     '''
     #region MainATViewModel Class
     #-------------------------------------------------------------------------+
-    activity_store_uri: str = "activities.json"
-    atv: atview.ATView = None # Reference to the View object for AT.
-    
     def __init__(self, atv: atview.ATView = None):
-        self.atv = atv # Associate ViewModel with View
+        self._activity_store_uri: str = AT_DEFAULT_ACTIVITY_STORE_URI 
+        self._atview: atview.ATView = atv # Reference to the View object for AT.
+        logger.debug(f"{p} MainATViewModel initialized with atv: {self._atview}")
 
     @property
     def activity_store_uri(self):
-        return self.activity_store_uri
+        return self._activity_store_uri
     
     @activity_store_uri.setter
     def activity_store_uri(self, value):
-        self.activity_store_uri = value
+        self._activity_store_uri = value
+
+    @property
+    def atview(self):
+        return self._atview
+    
+    @atview.setter
+    def atview(self, value):
+        self._atview = value
 
     #endregion MainATViewModel Class
     #-------------------------------------------------------------------------+

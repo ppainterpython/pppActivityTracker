@@ -337,6 +337,38 @@ def is_folder_in_path(foldername:str="",pathstr:str="") -> bool:
     return True if foldername in pathstr.split(os.path.sep) else False
 #endregion is_folder_in_path()
 
+#endregion attribute validation functions
+#------------------------------------------------------------------------------+
+
+#------------------------------------------------------------------------------+
+#region basic utility functions
+#------------------------------------------------------------------------------+
+#region ptid()
+def ptid()->str:
+    """Return the current [processID:threadID]."""
+    return f"[{os.getpid()}:{threading.get_native_id()}]"
+#endregion
+
+#region pfx()
+def pfx(o :object=None, mn :str="unknown") -> str:
+    '''"""Return a prefix string for logging including PID:TID, module/class,
+    and function names.'''
+    import sys
+    pt = ptid() #; me = o if o is not None else __name__
+    rv = ""
+    if o is not None:
+        cn = o.__class__.__name__ if o is not None and hasattr(o, "__class__") else __name__
+        mn = sys._getframe(1).f_code.co_name if hasattr(sys, "_getframe") and sys._getframe(1) else "<unknown>"
+        rv = f"{pt}:{cn}.{mn}()"
+    elif mn is not None and isinstance(mn, str) and len(mn) > 0:
+        # Use the provided method name (mn) for the function name
+        cf = inspect.currentframe().f_back # Get the caller's frame
+        fn = cf.f_code.co_name if cf and hasattr(cf, 'f_code') else __name__ 
+        rv = f"{pt}:{mn}.{fn}()"
+    # rv = str(inspect.currentframe().f_code.co_name)
+    return rv 
+#endregion 
+
 #region at_env_info)
 def at_env_info(callername:str="not provided",consoleprint:bool=False,
                 logger = None) -> tuple:
@@ -407,38 +439,6 @@ def at_env_info(callername:str="not provided",consoleprint:bool=False,
         logger.debug(f"{p}at_env_info)={ret_tuple}")
     return tuple(ret) # Return a tuple with the values
 #endregion at_env_info)
-
-#endregion attribute validation functions
-#------------------------------------------------------------------------------+
-
-#------------------------------------------------------------------------------+
-#region basic utility functions
-#------------------------------------------------------------------------------+
-#region ptid()
-def ptid()->str:
-    """Return the current [processID:threadID]."""
-    return f"[{os.getpid()}:{threading.get_native_id()}]"
-#endregion
-
-#region pfx()
-def pfx(o :object=None, mn :str="unknown") -> str:
-    '''"""Return a prefix string for logging including PID:TID, module/class,
-    and function names.'''
-    import sys
-    pt = ptid() #; me = o if o is not None else __name__
-    rv = ""
-    if o is not None:
-        cn = o.__class__.__name__ if o is not None and hasattr(o, "__class__") else __name__
-        mn = sys._getframe(1).f_code.co_name if hasattr(sys, "_getframe") and sys._getframe(1) else "<unknown>"
-        rv = f"{pt}:{cn}.{mn}()"
-    elif mn is not None and isinstance(mn, str) and len(mn) > 0:
-        # Use the provided method name (mn) for the function name
-        cf = inspect.currentframe().f_back # Get the caller's frame
-        fn = cf.f_code.co_name if cf and hasattr(cf, 'f_code') else __name__ 
-        rv = f"{pt}:{mn}.{fn}()"
-    # rv = str(inspect.currentframe().f_code.co_name)
-    return rv 
-#endregion 
 
 #region is_running_in_pytest()
 def is_running_in_pytest(test:int=1) -> bool:
