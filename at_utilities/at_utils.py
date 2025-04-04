@@ -1,8 +1,11 @@
 #------------------------------------------------------------------------------+
 # at_utils.py
 import datetime,threading, os, inspect, sys, debugpy
+from logging import Logger
 from typing import List
+from atconstants import *
 #------------------------------------------------------------------------------+
+#region ISO 8601 Timestamp functional interface
 # Often when working with dates and times, where calculating time interval 
 # durations with a start and stop time, the units of the duration value will
 # be useful in hours, minutes or seconds. Applications using at_utils will
@@ -15,8 +18,6 @@ from typing import List
 ATU_DEFAULT_DURATION = 0.5 # Default in hours for an activity entry
 ATU_DEFAULT_DURATION_MINUTES = ATU_DEFAULT_DURATION * 60.0 # Default in minutes
 ATU_DEFAULT_DURATION_SECONDS = ATU_DEFAULT_DURATION * 3600.0 # Default in seconds
-#------------------------------------------------------------------------------+
-#region ISO 8601 Timestamp functional interface
 def iso_date_string(dt: datetime.datetime) -> str:
     """Convert a datetime object to an ISO format string."""
     if not isinstance(dt, datetime.datetime):
@@ -107,8 +108,6 @@ def to_float(value) -> float:
         e.add_note(f"{type(e).__name__}: Cannot convert '{value}' to int")
         raise
 #endregion ISO 8601 Timestamp functional interface
-#------------------------------------------------------------------------------+
-
 #------------------------------------------------------------------------------+
 #region Timestamp helper functions
 
@@ -298,18 +297,81 @@ def stop_str_or_default(stop: str = None, start: str = None) -> str:
 
 #endregion Timestamp helper functions
 #------------------------------------------------------------------------------+
-
-#------------------------------------------------------------------------------+
-#region attribute validation functions
-def is_str_or_none(value: str = None) -> bool:
-    """Positive test for None or type: str, return True, else return false."""
+#region parameter validation functions
+# Common validation schemes for parameters to functions and methods.
+# In cases where type is unrecoverable, raise TypeError.
+def is_object_or_none(value: object = None) -> bool:
+    """Positive test for None or type:object, return True, else return false."""
     if value is None: return True # None is acceptable
-    if  isinstance(value, str): return True # type: str is acceptable
+    # Reject primitive types (int, str, float, etc.)
+    if isinstance(value, (int, str, float, bool, list, tuple, dict, set)):
+        return False  # Primitive types should fail
+    # Ensure value is an instance of a class
+    if isinstance(value, object) and type(value).__module__ != "builtins":
+        return True  # Accept user-defined class instances
+
+def is_not_object_or_none(value: object = None) -> bool:
+    """Negative test for None or type:object."""
+    return not is_object_or_none(value)
+
+def is_obj_of_type(name:str, obj_value: object, 
+                   obj_type:type, 
+                   raise_TypeError:bool=False) -> bool:
+    """Positive test for object of type: type, return True, or raise TypeError."""
+    # name parameter is the name of the parameter being validated.
+    # Ensure name is a string, converting None to default string
+    if name is None or isinstance(name,str) and len(name) == 0: 
+        name = "default_name" 
+    if not isinstance(name, str): 
+        if raise_TypeError:
+            raise TypeError(f"name parameter must be type:'str', " + \
+                            f"not type:'{type(name).__name__}'")
+        else: return False
+    # Ensure obj_type is a type object
+    if obj_type is None or not isinstance(obj_type, type):
+        if raise_TypeError:
+            raise TypeError(f"obj_type parameter must be a type, " + \
+                            f"not type:'{type(name).__name__}'")
+        else: return False
+    # Check if the class name provided in 'type' matches the value's type
+    if not isinstance(obj_value, obj_type):
+        if raise_TypeError:
+            raise TypeError(f"'{name}'parameter value:'{obj_value}' " + \
+                            f"must be of type:'{obj_type}', " + \
+                            f"not type:'{type(obj_value).__name__}'")
+        else:
+            return False
+    # If all checks pass, return True
+    return True
+
+def is_not_obj_of_type(name:str, object_value: object = None, obj_type:str = "object") -> bool:
+    """Negative test for None or obj."""
+    return not is_obj_of_type(name, object_value, obj_type)
+
+def is_str_or_none(name:str="not-provided", value:str=None, 
+                   raise_TypeError:bool=False) -> bool:
+    """Positive test for None or type: str, return True, return False, 
+    or raise TypeError or ValueError."""
+    # name parameter is the name of the parameter being validated.
+    if name is None: name = "converted_to_not-provided" 
+    if not isinstance(name, str): 
+        if raise_TypeError:
+            raise TypeError(f"name parameter must be type:'str', " + \
+                            f"not type:'{type(name).__name__}'")
+        else: return False
+    # value parameter is the value being validated.
+    if value is None: return True # None is acceptable
+    if isinstance(value, str): return True # type: str is acceptable
+    if(raise_TypeError):
+        raise TypeError(f"'{name}'parameter value:'{value}' must be " + \
+                        f"type:'str' or None, " + \
+                        f"not type:'{type(value).__name__}'")
     return False # other types are False
 
-def is_not_str_or_none(value: str = None) -> bool:
-    """Negative test for None or str."""
-    return not is_str_or_none(value)
+def is_not_str_or_none(name:str="not-provided", value: str = None) -> bool:
+    """Negative test for None or type: str, return True, return False, 
+    or raise TypeError or ValueError."""
+    return not is_str_or_none(name, value)
 
 def str_empty(value: str) -> bool:
     """Check if a string is not empty."""
@@ -337,9 +399,7 @@ def is_folder_in_path(foldername:str="",pathstr:str="") -> bool:
     return True if foldername in pathstr.split(os.path.sep) else False
 #endregion is_folder_in_path()
 
-#endregion attribute validation functions
-#------------------------------------------------------------------------------+
-
+#endregion parameter validation functions
 #------------------------------------------------------------------------------+
 #region basic utility functions
 #------------------------------------------------------------------------------+
@@ -370,14 +430,34 @@ def pfx(o :object=None, mn :str="unknown") -> str:
 #endregion 
 
 #region at_env_info)
+# label the tuple elements for clarity
+ATU_CALLER_NAME = 0         # 0: callername
+ATU_APP_FILE_NAME = 1       # 1: app_file_name
+ATU_CALL_MODE = 2           # 2: call_mode
+ATU_VSCODE_DEBUG_MODE = 3   # 3: vscode_debug_mode
+ATU_VSCODE_PYTEST_MODE = 4  # 4: vscode_pytest_mode
+ATU_PYTEST_DEBUG_VSCODE = 5 # 5: pytest_debug_vscode_mode
+ATU_PYTEST_MODE = 6         # 6: pytest_mode
+ATU_PYTHON_SYS_PATH = 7     # 7: python_sys_path
+ATU_APP_FULL_PATH = 8       # 8: app_full_path
+ATU_APP_CWD = 9             # 9: app_cwd
 def at_env_info(callername:str="not provided",consoleprint:bool=False,
-                logger = None) -> tuple:
+                logger: Logger = None) -> tuple:
     '''
     Return a tuple with info about runtime environment.
-    Content: (callername, app_full_path, app_file_name, call_mode,   
+    Content: (callername, app_file_name, call_mode,   
               "vscode_debug", "vscode_pytest", "pytest_debug_vscode",
-              "pytest")
+              "pytest, python_sys_path, app_full_path, app_cwd)")
     '''
+    # parameter validation
+    if is_not_str_or_none(callername):
+        t = type(callername).__name__
+        raise TypeError(f"callername must be type:str or None, not type: {t}")
+    if not isinstance(consoleprint, bool):
+        t = type(consoleprint).__name__
+        raise TypeError(f"consoleprint must be type:bool, not type: {t}")
+    #
+    _ = is_not_obj_of_type(logger, "Logger") # raises TypeError if not Logger
     argv = sys.argv
     # Full path to the application
     app_full_path = argv[0] if len(argv) >= 1 else "unknown"
@@ -414,29 +494,52 @@ def at_env_info(callername:str="not provided",consoleprint:bool=False,
     pytest_mode = "pytest" if "pytest" in sys.modules else "no pytest"
     temp = "PYTEST_CURRENT_TEST" in os.environ
 
-    ret: List = [callername]      # 0: callername
-    ret.append(app_full_path)     # 1: app_full_path
-    ret.append(app_file_name)     # 2: app_file_name
-    ret.append(call_mode)         # 3: call_mode
-    ret.append(vscode_debug_mode) # 4: vscode_debug_mode
-    ret.append(vscode_pytest_mode) # 5: vscode_pytest_mode
-    ret.append(pytest_debug_vscode_mode) # 6: pytest_debug_vscode_mode
-    ret.append(pytest_mode)       # 7: pytest_mode
+    # Python sys.path()
+    python_sys_path = sys.path
+
+    # Current working directory
+    app_cwd = os.getcwd()
+
+    ret: List = [callername]             # 0: ATU_CALLER_NAME
+    ret.append(app_file_name)            # 1: ATU_APP_FILE_NAME
+    ret.append(call_mode)                # 2: ATU_CALL_MODE
+    ret.append(vscode_debug_mode)        # 3: ATU_VSCODE_DEBUG_MODE
+    ret.append(vscode_pytest_mode)       # 4: ATU_VSCODE_PYTEST_MODE
+    ret.append(pytest_debug_vscode_mode) # 5: ATU_PYTEST_DEBUG_VSCODE
+    ret.append(pytest_mode)              # 6: ATU_PYTEST_MODE
+    ret.append(python_sys_path)          # 7: ATU_PYTHON_SYS_PATH
+    ret.append(app_full_path)            # 8: ATU_APP_FULL_PATH
+    ret.append(app_cwd)                  # 9: ATU_APP_CWD
 
     ret_tuple = (ret)
     if consoleprint:
         print("========================")
-        print(f"Caller __name__: {callername}")
-        print(f"Application full path: {app_full_path}")
-        print(f"Application file name: {app_file_name}")
-        print(f"Call mode: {call_mode}")
-        print(f"vscode_debug_mode: {vscode_debug_mode}")
-        print(f"vscode_pytest_mode: {vscode_pytest_mode}")
+        print(f"         Caller __name__: {callername}")
+        print(f"   Application file name: {app_file_name}")
+        print(f"               Call mode: {call_mode}")
+        print(f"       vscode_debug_mode: {vscode_debug_mode}")
+        print(f"      vscode_pytest_mode: {vscode_pytest_mode}")
         print(f"pytest_debug_vscode_mode: {pytest_debug_vscode_mode}")
-        print(f"pytest_mode: {pytest_mode}")
+        print(f"             pytest_mode: {pytest_mode}")
+        print(f"         python_sys_path: {python_sys_path}")
+        print(f"   Application full path: {app_full_path}")
+        print(f"                 app_cwd: {app_cwd}")
+        print("========================")
     if logger is not None:
         p = pfx(callername)
         logger.debug(f"{p}at_env_info)={ret_tuple}")
+        logger.debug(f"{p}========================")
+        logger.debug(f"{p}         Caller __name__: {callername}")
+        logger.debug(f"{p}   Application full path: {app_full_path}")
+        logger.debug(f"{p}   Application file name: {app_file_name}")
+        logger.debug(f"{p}               Call mode: {call_mode}")
+        logger.debug(f"{p}       vscode_debug_mode: {vscode_debug_mode}")
+        logger.debug(f"{p}      vscode_pytest_mode: {vscode_pytest_mode}")
+        logger.debug(f"{p}pytest_debug_vscode_mode: {pytest_debug_vscode_mode}")
+        logger.debug(f"{p}             pytest_mode: {pytest_mode}")
+        logger.debug(f"{p}         python_sys_path: {python_sys_path}")
+        logger.debug(f"{p}                 app_cwd: {app_cwd}")
+        logger.debug(f"{p}========================")
     return tuple(ret) # Return a tuple with the values
 #endregion at_env_info)
 

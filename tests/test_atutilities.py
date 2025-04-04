@@ -1,7 +1,19 @@
 #-----------------------------------------------------------------------------+
-import pytest, os, threading, re
+import pytest, os, threading, re, logging
 from typing import List
+from atconstants import *
 import at_utilities.at_utils as atu
+from at_utilities.at_logging import atlogging_setup
+# Setup logging for AT compaitble with pytest and other modules
+p = atu.pfx(mn=__name__)
+logger = atlogging_setup(AT_APP_NAME)
+if logger is None:
+    logger = logging.getLogger(AT_APP_NAME)  # fallback to default logger if setup failed
+    if logger is None:
+        logger = logging.getLogger()  # fallback to the root logger if all else fails
+if logger is not None:
+    logger.debug(f"{p}Imported module: {__name__}")
+    logger.debug(f"{p} Logging initialized.")
 
 #------------------------------------------------------------------------------+
 #region ISO Date Utilities
@@ -539,7 +551,7 @@ def test_current_timestamp():
 #------------------------------------------------------------------------------+
 
 #------------------------------------------------------------------------------+
-#region attribute validation function tests
+#region parameter validation function tests
 #------------------------------------------------------------------------------+
 #region test_notempty()
 def test_str_notempty():
@@ -568,7 +580,152 @@ def test_str_notempty():
     assert not atu.str_notempty({}), \
         "str_notempty() failed for empty dictionary"
 #endregion test_notempty()
+#-------------------------------------------
+#region test_is_obj_or_none()
+def test_is_object_or_none():  
+    """Test the is_obj_or_none function."""
+    # Test with valid object
+    class TestClass:
+        pass
 
+    obj = TestClass()
+    assert atu.is_object_or_none(obj), \
+        "is_obj_or_none() failed for valid name obj_value parameters"
+
+    # Test with valid name value and None obj_value
+    assert atu.is_object_or_none(None), \
+        "is_obj_or_none() failed for valid name and None obj_value parameters"
+    assert atu.is_object_or_none(), \
+        "is_obj_or_none() failed for valid name and None obj_value parameters"
+    # Test with invalid type (e.g., int, list, dict)
+    assert not atu.is_object_or_none(123), \
+        "is_obj_or_none() failed for integer value"
+    assert atu.is_not_object_or_none(123), \
+        "is_obj_or_none() failed for integer value"
+    assert not atu.is_object_or_none([]), \
+        "is_obj_or_none() failed for empty list"
+    assert not atu.is_object_or_none({}), \
+        "is_obj_or_none() failed for empty dictionary"
+#endregion test_is_obj_or_none()
+#-------------------------------------------
+#region is_obj_of_type()
+def test_is_obj_of_type():
+    """Test the is_obj_of_type function."""
+    vn = "valid_name"; vs = "valid_string"
+    # Test with valid object
+    class TestClass:
+        pass
+
+    obj = TestClass()
+    obj_type = type(obj)
+    assert atu.is_obj_of_type(vn,obj,TestClass), \
+        "is_obj_of_type() failed for valid object and class parameters"
+    assert atu.is_not_obj_of_type(vn,obj,logging.Logger), \
+        "is_obj_not_of_type() failed for incorrect object_type parameters"
+
+    # Test with no values
+    with pytest.raises(TypeError):
+        atu.is_obj_of_type()
+    with pytest.raises(TypeError):
+        atu.is_obj_of_type(vn)
+    with pytest.raises(TypeError):
+        atu.is_obj_of_type(vn,obj)
+    
+    # Test with some None parameters
+    assert atu.is_obj_of_type(None,obj,TestClass), \
+        "is_not_obj_or_none() failed for None value"
+    assert not atu.is_obj_of_type(vn,None,TestClass), \
+        "is_not_obj_or_none() failed for None value"
+
+    # Test with invalid type (e.g., int, list, dict)
+    assert not atu.is_obj_of_type(123,obj,TestClass), \
+        "is_obj_of_type() failed for integer value"
+    assert not atu.is_obj_of_type([],obj,TestClass), \
+        "is_obj_of_type() failed for empty list"
+    assert not atu.is_obj_of_type({},obj,TestClass), \
+        "is_obj_of_type() failed for empty dictionary"
+    assert not atu.is_obj_of_type(vn,123,TestClass), \
+        "is_obj_of_type() failed for empty dictionary"
+    assert not atu.is_obj_of_type(vn,obj,123), \
+        "is_obj_of_type() failed for empty dictionary"
+    
+    # Test with invalid type with raise_TypeError=True
+    with pytest.raises(TypeError):
+        atu.is_obj_of_type(123,123,TestClass,True), \
+            "is_obj_of_type() failed for integer name parameter"
+    with pytest.raises(TypeError):
+        atu.is_obj_of_type(vn,123,TestClass,True), \
+            "is_obj_of_type() failed for integer value"
+    with pytest.raises(TypeError):
+        atu.is_obj_of_type(vn,obj,123,True), \
+            "is_obj_of_type() failed for empty dictionary"
+    with pytest.raises(TypeError):  
+        atu.is_obj_of_type(vn,[],TestClass,True), \
+            "is_obj_of_type() failed for empty list"
+    with pytest.raises(TypeError):
+        atu.is_obj_of_type(vn,obj,[],True), \
+            "is_obj_of_type() failed for empty list"
+    with pytest.raises(TypeError):
+        atu.is_obj_of_type(vn,obj,{},True), \
+            "is_obj_of_type() failed for empty dictionary"
+    with pytest.raises(TypeError):
+        atu.is_obj_of_type(vn,None,TestClass,True), \
+            "is_obj_of_type() failed for None obj_value parameter"
+    with pytest.raises(TypeError):
+        atu.is_obj_of_type(vn,obj,None,True), \
+            "is_obj_of_type() failed for None obj_type parameter"
+#endregion is_obj_of_type()
+#-------------------------------------------
+#region test_is_str_or_none()
+def test_is_str_or_none():
+    """Test the is_str_or_none function."""
+    # Test with valid string name and value
+    vn = "valid_name"; vs = "valid_string"
+    assert atu.is_str_or_none(vn, vs, False), \
+        "is_str_or_none() failed for valid string value parameter"
+    # Test with no parameters
+    assert atu.is_str_or_none(), \
+        "is_str_or_none() failed for valid string value parameter"
+
+    # Test with valid string name and None value
+    assert atu.is_str_or_none(vn, None, False), \
+        "is_str_or_none() failed for None value parameter"
+
+    # Test with valid string name and empty string value
+    assert atu.is_str_or_none(vn, ""), \
+        "is_str_or_none() failed for empty string value parameter"
+
+    # Test with invalid value type (e.g., int, list, dict)
+    with pytest.raises(TypeError):
+        atu.is_str_or_none(vn, 123, True), \
+            "is_str_or_none() failed for integer value parameter"
+    with pytest.raises(TypeError):
+        atu.is_str_or_none(123, vs, True), \
+            "is_str_or_none() failed for integer name parameter"
+    with pytest.raises(TypeError):
+        atu.is_str_or_none(123, 123, True), \
+            "is_str_or_none() failed for integer name and value parameters"
+    assert not atu.is_str_or_none(vn,123), \
+        "is_str_or_none() failed for integer value parameter"
+    assert atu.is_not_str_or_none(vn,123), \
+        "is_str_or_none() failed for integer value parameter"
+    with pytest.raises(TypeError):
+        atu.is_str_or_none(vn, [], True), \
+            "is_str_or_none() failed for list value parameter"
+    assert not atu.is_str_or_none(vn, []), \
+        "is_str_or_none() failed for empty list value parameter"
+    assert atu.is_not_str_or_none(vn,[]), \
+        "is_str_or_none() failed for empty list value parameter"
+    with pytest.raises(TypeError):
+        atu.is_str_or_none(vn, {}, True), \
+            "is_str_or_none() failed for dict value parameter"
+    assert not atu.is_str_or_none({}), \
+        "is_str_or_none() failed for empty dictionary value parameter"
+    with pytest.raises(TypeError):
+        atu.is_str_or_none(vn, 123, True), \
+            "is_str_or_none() failed for integer value parameter"
+#endregion test_is_str_or_none()
+#-------------------------------------------
 #region test_str_or_none()
 def test_str_or_none():
     """Test the str_or_none function."""
@@ -592,7 +749,7 @@ def test_str_or_none():
     assert atu.str_or_none({}) is None, \
         "str_or_none() failed for empty dictionary"
 #endregion test_str_or_none()
-
+#-------------------------------------------
 #region test_stop_str_or_default()
 def test_stop_str_or_default():
     """Test the stop_str_or_default function."""
@@ -638,7 +795,7 @@ def test_stop_str_or_default():
     with pytest.raises(TypeError):
         atu.stop_str_or_default(None, [])
 #endregion test_stop_str_or_default()
-
+#-------------------------------------------
 #region test_timestamp_str_or_default()
 def test_timestamp_str_or_default():
     """Test the timestamp_str_or_default function."""
@@ -673,7 +830,8 @@ def test_timestamp_str_or_default():
         f"returned incorrect timestamp='{v}'"
         
 #endregion test_timestamp_str_or_default()
-#region attribute validation function tests
+#-------------------------------------------
+#endregion parameter validation function tests
 #------------------------------------------------------------------------------+
 
 #------------------------------------------------------------------------------+
@@ -763,6 +921,33 @@ def test_is_running_in_pytest():
     assert not atu.is_running_in_pytest('not int'), f"is_running_in_pytest() returned False"
 
 #endregion  test_is_running_in_pytest()
+
+#region test_env_info()
+def test_env_info():
+    """Test the env_info function."""
+    # Test with valid input
+    env_info = atu.env_info()
+    assert isinstance(env_info, tuple), \
+        "env_info() should return a tuple"
+    assert "Python" in env_info, \
+        "env_info() should contain 'Python'"
+    assert "OS" in env_info, \
+        "env_info() should contain 'OS'"
+
+    # Test with invalid input (e.g., None)
+    with pytest.raises(TypeError):
+        atu.env_info(None)
+
+    # Test with empty string
+    with pytest.raises(ValueError):
+        atu.env_info("")
+
+    # Test with invalid type (e.g., int, list, dict)
+    with pytest.raises(TypeError):
+        atu.env_info(123)
+    with pytest.raises(TypeError):
+        atu.env_info([])
+#endregion test_env_info()
 
 #endregion basic utility functions
 #------------------------------------------------------------------------------+

@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------+
-from atconstants import AT_APP_NAME
+from atconstants import *
 import at_utilities.at_utils as atu
 from at_utilities.at_logging import atlogging_setup 
 #------------------------------------------------------------------------------+

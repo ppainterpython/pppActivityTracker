@@ -26,7 +26,7 @@ print(f"App full path: {app_full_path}")
 print(f"sys.path: {sys.path}")
 
 
-from atconstants import AT_APP_NAME, AT_LOG_FILE
+from atconstants import *
 import at_utilities.at_utils as atu
 
 #------------------------------------------------------------------------------+
