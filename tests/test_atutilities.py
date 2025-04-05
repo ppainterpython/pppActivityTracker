@@ -922,32 +922,55 @@ def test_is_running_in_pytest():
 
 #endregion  test_is_running_in_pytest()
 
-#region test_env_info()
-def test_env_info():
+#region test_at_env_info()
+def test_at_env_info():
     """Test the env_info function."""
     # Test with valid input
-    env_info = atu.env_info()
+    env_info = atu.at_env_info(__name__,logger,True)
     assert isinstance(env_info, tuple), \
-        "env_info() should return a tuple"
-    assert "Python" in env_info, \
-        "env_info() should contain 'Python'"
-    assert "OS" in env_info, \
-        "env_info() should contain 'OS'"
+        "env_info(__name__,logger,True) should return a tuple"
+    assert "pytest" in env_info, \
+        "env_info(__name__,logger,True) should contain 'pytest'"
+    env_info = atu.at_env_info(__name__, logger, False)
+    assert isinstance(env_info, tuple), \
+        "env_info(__name__, logger, False) should return a tuple"
+    assert "pytest" in env_info, \
+        "env_info(__name__, logger, False) should contain 'pytest'"
+    env_info = atu.at_env_info(None, logger, False)
+    assert isinstance(env_info, tuple), \
+        "env_info(None, logger, False) should return a tuple"
+    assert "pytest" in env_info, \
+        "env_info(None, logger, False) should contain 'pytest'"
+    env_info = atu.at_env_info("", logger, False)
+    assert isinstance(env_info, tuple), \
+        "env_info("", logger, False) should return a tuple"
+    assert "pytest" in env_info, \
+        "env_info("", logger, False) should contain 'pytest'"
 
-    # Test with invalid input (e.g., None)
+    # Test with invalid input (e.g., None, [], int, dict)
     with pytest.raises(TypeError):
-        atu.env_info(None)
+        atu.at_env_info([],logger), \
+            f"env_info([], logger) should raise TypeError"
+    with pytest.raises(TypeError):
+        atu.at_env_info(None,[]), \
+            f"env_info(None,[]) should raise TypeError"
+    with pytest.raises(TypeError):
+        atu.at_env_info(__name__,logger,[]), \
+            f"env_info(__name__,logger,[]) should raise TypeError"
+    with pytest.raises(TypeError):
+        atu.at_env_info(__name__,logger,123), \
+            f"env_info(__name__,logger,123) should raise TypeError"
+    with pytest.raises(TypeError):
+        atu.at_env_info(__name__,logger,"foo"), \
+            f"env_info(__name__,logger,\"foo\") should raise TypeError"
+    with pytest.raises(TypeError):
+        atu.at_env_info(123,123), \
+            f"env_info(None,[]) should raise TypeError"
+    with pytest.raises(TypeError):
+        atu.at_env_info(__name__,123,[]), \
+            f"env_info(__name__,logger,[]) should raise TypeError"
 
-    # Test with empty string
-    with pytest.raises(ValueError):
-        atu.env_info("")
-
-    # Test with invalid type (e.g., int, list, dict)
-    with pytest.raises(TypeError):
-        atu.env_info(123)
-    with pytest.raises(TypeError):
-        atu.env_info([])
-#endregion test_env_info()
+#endregion test_at_env_info()
 
 #endregion basic utility functions
 #------------------------------------------------------------------------------+

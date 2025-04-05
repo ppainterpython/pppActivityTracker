@@ -344,9 +344,10 @@ def is_obj_of_type(name:str, obj_value: object,
     # If all checks pass, return True
     return True
 
-def is_not_obj_of_type(name:str, object_value: object = None, obj_type:str = "object") -> bool:
+def is_not_obj_of_type(name:str, object_value: object, 
+                       obj_type:type, raise_TypeError:bool=False) -> bool:
     """Negative test for None or obj."""
-    return not is_obj_of_type(name, object_value, obj_type)
+    return not is_obj_of_type(name, object_value, obj_type, raise_TypeError)
 
 def is_str_or_none(name:str="not-provided", value:str=None, 
                    raise_TypeError:bool=False) -> bool:
@@ -389,6 +390,11 @@ def str_or_none(value: str) -> str:
     """Return value if non-empty str, else return None."""
     # Check if the value is a string and not empty
     return value if str_notempty(value) else None
+
+def str_or_default(value: str, default:str) -> str:
+    """Return value if non-empty str, else return default."""
+    # Check if the value is a string and not empty
+    return value if str_notempty(value) else default
 
 #region is_folder_in_path()
 def is_folder_in_path(foldername:str="",pathstr:str="") -> bool:
@@ -441,8 +447,9 @@ ATU_PYTEST_MODE = 6         # 6: pytest_mode
 ATU_PYTHON_SYS_PATH = 7     # 7: python_sys_path
 ATU_APP_FULL_PATH = 8       # 8: app_full_path
 ATU_APP_CWD = 9             # 9: app_cwd
-def at_env_info(callername:str="not provided",consoleprint:bool=False,
-                logger: Logger = None) -> tuple:
+def at_env_info(callername:str, logger: Logger,
+                consoleprint:bool=False,
+                ) -> tuple:
     '''
     Return a tuple with info about runtime environment.
     Content: (callername, app_file_name, call_mode,   
@@ -450,14 +457,15 @@ def at_env_info(callername:str="not provided",consoleprint:bool=False,
               "pytest, python_sys_path, app_full_path, app_cwd)")
     '''
     # parameter validation
-    if is_not_str_or_none(callername):
+    if is_not_str_or_none(callername): # raise TypeError if not str or None
         t = type(callername).__name__
         raise TypeError(f"callername must be type:str or None, not type: {t}")
+    cn = str_or_default(callername,"not provided") # default to "not provided"
     if not isinstance(consoleprint, bool):
         t = type(consoleprint).__name__
         raise TypeError(f"consoleprint must be type:bool, not type: {t}")
     #
-    _ = is_not_obj_of_type(logger, "Logger") # raises TypeError if not Logger
+    _ = is_not_obj_of_type(cn, logger, Logger, True) # raises TypeError if not Logger
     argv = sys.argv
     # Full path to the application
     app_full_path = argv[0] if len(argv) >= 1 else "unknown"
@@ -466,7 +474,7 @@ def at_env_info(callername:str="not provided",consoleprint:bool=False,
     app_file_name = os.path.basename(app_full_path)
 
     # caller supplied value, shoule be __name__ of the caller
-    call_mode = "direct" if callername == "__main__" else "imported"
+    call_mode = "direct" if cn == "__main__" else "imported"
 
     # vscode_debug: Check if the script is running in a VSCode debug environment
     vscode_debug_mode_test: bool = \
@@ -500,7 +508,7 @@ def at_env_info(callername:str="not provided",consoleprint:bool=False,
     # Current working directory
     app_cwd = os.getcwd()
 
-    ret: List = [callername]             # 0: ATU_CALLER_NAME
+    ret: List = [cn]             # 0: ATU_CALLER_NAME
     ret.append(app_file_name)            # 1: ATU_APP_FILE_NAME
     ret.append(call_mode)                # 2: ATU_CALL_MODE
     ret.append(vscode_debug_mode)        # 3: ATU_VSCODE_DEBUG_MODE
@@ -514,7 +522,7 @@ def at_env_info(callername:str="not provided",consoleprint:bool=False,
     ret_tuple = (ret)
     if consoleprint:
         print("========================")
-        print(f"         Caller __name__: {callername}")
+        print(f"         Caller __name__: {cn}")
         print(f"   Application file name: {app_file_name}")
         print(f"               Call mode: {call_mode}")
         print(f"       vscode_debug_mode: {vscode_debug_mode}")
@@ -526,10 +534,10 @@ def at_env_info(callername:str="not provided",consoleprint:bool=False,
         print(f"                 app_cwd: {app_cwd}")
         print("========================")
     if logger is not None:
-        p = pfx(callername)
+        p = pfx(cn)
         logger.debug(f"{p}at_env_info)={ret_tuple}")
         logger.debug(f"{p}========================")
-        logger.debug(f"{p}         Caller __name__: {callername}")
+        logger.debug(f"{p}         Caller __name__: {cn}")
         logger.debug(f"{p}   Application full path: {app_full_path}")
         logger.debug(f"{p}   Application file name: {app_file_name}")
         logger.debug(f"{p}               Call mode: {call_mode}")
