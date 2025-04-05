@@ -1,12 +1,29 @@
 #-----------------------------------------------------------------------------+
 # test_at_logging.py
 #-----------------------------------------------------------------------------+
-import logging, sys
+import logging, pytest
 from atconstants import *
 from at_utilities.at_logging import atlogging_setup
 import at_utilities.at_utils as atu
 import atmain
 from atmain import Application as App
+
+@pytest.fixture(scope="module", autouse=True)
+def setup_and_teardown(autouse=True):
+    """
+    Setup and teardown for the module.
+    This is used to initialize logging and clean up after tests.
+    """
+    # Setup logging for the module
+    p = atu.pfx(mn=__name__)
+    logger = atlogging_setup(AT_APP_NAME)
+    if logger:
+        logger.debug(f"{p}Setup for test module: {__name__}")
+    
+    yield
+
+    if logger:
+        logger.debug(f"{p}Teardown for test module: {__name__}")
 
 # Setup logging for AT compaitble with pytest and other modules
 p = atu.pfx(mn=__name__)

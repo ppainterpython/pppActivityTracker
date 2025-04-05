@@ -40,7 +40,7 @@ class Application:
     def run(self) -> None:
         """Run the ATView application loop"""
         p=atu.pfx(mn=__name__)
-        atenv = atu.at_env_info(__name__,True,logger)
+        atenv = atu.at_env_info(__name__,logger)
         run_mode = atenv[3]
         logger.debug(f"{p}Running in {run_mode} mode")
         if run_mode == "direct":
