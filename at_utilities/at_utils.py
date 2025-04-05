@@ -2,7 +2,7 @@
 # at_utils.py
 import datetime,threading, os, inspect, sys, debugpy
 from logging import Logger
-from typing import List
+from typing import List, Optional
 from atconstants import *
 #------------------------------------------------------------------------------+
 #region ISO 8601 Timestamp functional interface
@@ -410,23 +410,30 @@ def is_folder_in_path(foldername:str="",pathstr:str="") -> bool:
 #region basic utility functions
 #------------------------------------------------------------------------------+
 #region ptid()
+_pid: Optional[int] = None
+_tid: Optional[int] = None
 def ptid()->str:
     """Return the current [processID:threadID]."""
-    return f"[{os.getpid()}:{threading.get_native_id()}]"
+    global _pid 
+    global _tid
+    if _pid is None and _tid is None:
+        _pid = str(os.getpid())
+        _tid = str(threading.get_native_id())
+    return f"[{_pid}:{_tid}]"
 #endregion
 
 #region pfx()
 def pfx(o :object=None, mn :str="unknown") -> str:
     '''"""Return a prefix string for logging including PID:TID, module/class,
-    and function names.'''
+    and function names. From a method, use self for parameter o.'''
     import sys
     pt = ptid() #; me = o if o is not None else __name__
     rv = ""
-    if o is not None:
+    if o is not None: # extract class name
         cn = o.__class__.__name__ if o is not None and hasattr(o, "__class__") else __name__
         mn = sys._getframe(1).f_code.co_name if hasattr(sys, "_getframe") and sys._getframe(1) else "<unknown>"
         rv = f"{pt}:{cn}.{mn}()"
-    elif mn is not None and isinstance(mn, str) and len(mn) > 0:
+    elif str_notempty(mn):
         # Use the provided method name (mn) for the function name
         cf = inspect.currentframe().f_back # Get the caller's frame
         fn = cf.f_code.co_name if cf and hasattr(cf, 'f_code') else __name__ 

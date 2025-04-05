@@ -2,7 +2,7 @@
 # test_at_logging.py
 #-----------------------------------------------------------------------------+
 import logging, sys
-from atconstants import AT_APP_NAME
+from atconstants import *
 from at_utilities.at_logging import atlogging_setup
 import at_utilities.at_utils as atu
 
@@ -69,6 +69,11 @@ def test_logging_setup(caplog):
     test_logger.critical(msg)
     assert msg in caplog.text, \
         f"{tf}: failed to log a critical message"
-    logger.debug(f"{tf}Completed test")
+    del test_logger
+    # Test the exception handling of atlogging_setup()
+    with pytest.raises(Exception):
+        test_logger = atlogging_setup(AT_TEST_EXCEPTION_LOGGER_NAME)
+
+    logger.debug(f"{tf}Completed tests")
 
 #endregion

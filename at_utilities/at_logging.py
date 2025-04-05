@@ -12,6 +12,7 @@ debugging. This is important to avoid duplicate log messages in the output.
 '''
 #------------------------------------------------------------------------------+
 import logging, sys, os, threading
+from atconstants import *
 cwd = os.getcwd(); sys.path.append(cwd)
 argv = sys.argv; app_full_path = argv[0] if len(argv) >= 1 else "unknown"
 
@@ -38,16 +39,19 @@ def atlogging_setup(logger_name: str = AT_APP_NAME) -> logging.Logger:
     try:
         p = atu.pfx()
         global at_logging_initialized
+        if logger_name == AT_TEST_EXCEPTION_LOGGER_NAME:
+            logger = logging.getLogger(AT_APP_NAME)
+            _ = 1/0 # Force an exception to test the exception logger
 
         with _logging_lock:  # Ensure thread-safe access to the logger setup
-            if at_logging_initialized:
-                logger = logging.getLogger(logger_name)
-                logger.debug(f"{p} Logging handlers initialized. First log message.")
-                return logging.getLogger(logger_name)
             logger = logging.getLogger(logger_name)
             logger.setLevel(logging.DEBUG)  # Set the global logging level
-
-            at_logging_initialized = True
+            if at_logging_initialized:
+                logger = logging.getLogger(logger_name)
+                logger.debug(f"{p} Logging handlers previously initialized.")
+                return logging.getLogger(logger_name)
+            else:
+                at_logging_initialized = True
 
             # debug to learn
             root_logger = logging.getLogger()
@@ -75,8 +79,10 @@ def atlogging_setup(logger_name: str = AT_APP_NAME) -> logging.Logger:
             logger.addHandler(console_handler)
             logger.addHandler(file_handler)
             p = atu.pfx()
-            logger.debug("============================================================")
-            logger.debug(f"{p} Logging handlers initialized. First log message.")
+            hdr = "========================================================="
+            hdr += "[" + hdr + hdr + "]"
+            logger.debug(f"{p}{hdr}")
+            logger.debug(f"{p} 1st log message, initialized Logging handlers.")
             # Debug: List root logger handlers
             logger.debug(f"  Logger name: {logger.name}, Level: {logger.level}, " + \
                         f"Logging handlers count: {len(logging.getLogger().handlers)}")
@@ -90,10 +96,11 @@ def atlogging_setup(logger_name: str = AT_APP_NAME) -> logging.Logger:
             print(f"{logger_name} logger handlers after atlogging_setup({lnc}): {logger.handlers}")
             return logger
     except Exception as e:
-        print(f"Error in atlogging_setup for requested logger: '{logger}'")
-        print(f"Exception: {e}")
-        logger = logging.getLogger() ## Fallback to root logger 
-        return logger
+        m1 = f"{p}Error in atlogging_setup for requested logger: '{logger}'"
+        m2 = f"{p}Exception: {e}"
+        _ = logger.debug(m1) if logger is not None else print(m1)
+        _ = logger.debug(m2) if logger is not None else print(m2)
+        raise
 #endregion atlogging_setup()
 #------------------------------------------------------------------------------+
 #region atlogging_header()
