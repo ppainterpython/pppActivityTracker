@@ -56,7 +56,7 @@ def atlogging_setup(logger_name: str = AT_APP_NAME) -> logging.Logger:
             # debug to learn
             root_logger = logging.getLogger()
             lc = len(root_logger.handlers)  
-            print(f"Root logger handlers before atlogging_setup({lc}): {root_logger.handlers}")
+            msg_before = f"Root logger handlers before atlogging_setup({lc}): {root_logger.handlers}"
 
             # Create a formatter for consistent log messages
             formatter = logging.Formatter(
@@ -84,16 +84,17 @@ def atlogging_setup(logger_name: str = AT_APP_NAME) -> logging.Logger:
             logger.debug(f"{p}{hdr}")
             logger.debug(f"{p} 1st log message, initialized Logging handlers.")
             # Debug: List root logger handlers
-            logger.debug(f"  Logger name: {logger.name}, Level: {logger.level}, " + \
-                        f"Logging handlers count: {len(logging.getLogger().handlers)}")
+            logger.debug(f"{p}  Logger name: {logger.name}, Level: {logger.level}, " + \
+                        f"Logging handlers count: {len(logger.handlers)}")
             for handler in logger.handlers:
-                logger.debug(f"    Handler: {handler}, Level: {handler.level}")
-            logger.debug("atlogging_setup(): Complete.")
+                logger.debug(f"{p}    Handler: {handler}, Level: {handler.level}")
+            logger.debug(f"{p}atlogging_setup(): Complete.")
+            logger.debug(msg_before)
             root_logger = logging.getLogger()
             lc = len(root_logger.handlers)
             lnc = len(logger.handlers)
-            print(f"Root logger handlers after atlogging_setup({lc}): {root_logger.handlers}")
-            print(f"{logger_name} logger handlers after atlogging_setup({lnc}): {logger.handlers}")
+            logger.debug(f"{p}Root logger handlers after atlogging_setup({lc}): {root_logger.handlers}")
+            logger.debug(f"{p}{logger_name} logger handlers after atlogging_setup({lnc}): {logger.handlers}")
             return logger
     except Exception as e:
         m1 = f"{p}Error in atlogging_setup for requested logger: '{logger}'"

@@ -410,16 +410,15 @@ def is_folder_in_path(foldername:str="",pathstr:str="") -> bool:
 #region basic utility functions
 #------------------------------------------------------------------------------+
 #region ptid()
-_pid: Optional[int] = None
-_tid: Optional[int] = None
+def get_pid() -> int:
+    """Return the current process ID."""
+    return os.getpid()
+def get_tid() -> int:
+    """Return the current thread ID."""
+    return threading.get_native_id()
 def ptid()->str:
     """Return the current [processID:threadID]."""
-    global _pid 
-    global _tid
-    if _pid is None and _tid is None:
-        _pid = str(os.getpid())
-        _tid = str(threading.get_native_id())
-    return f"[{_pid}:{_tid}]"
+    return f"[{get_pid()}:{get_tid()}]"
 #endregion
 
 #region pfx()
@@ -435,9 +434,14 @@ def pfx(o :object=None, mn :str="unknown") -> str:
         rv = f"{pt}:{cn}.{mn}()"
     elif str_notempty(mn):
         # Use the provided method name (mn) for the function name
-        cf = inspect.currentframe().f_back # Get the caller's frame
-        fn = cf.f_code.co_name if cf and hasattr(cf, 'f_code') else __name__ 
-        rv = f"{pt}:{mn}.{fn}()"
+        stack = inspect.stack()
+        caller_frame = stack[1] if len(stack) > 1 else None
+        caller_function = caller_frame.function
+        caller_module = caller_frame.f_globals["__name__"]
+        rv = f"{pt}:{caller_module}.{caller_function}()"
+        # cf = inspect.currentframe().f_back # Get the caller's frame
+        # fn = cf.f_code.co_name if cf and hasattr(cf, 'f_code') else __name__ 
+        # rv = f"{pt}:{mn}.{fn}()"
     # rv = str(inspect.currentframe().f_code.co_name)
     return rv 
 #endregion 
