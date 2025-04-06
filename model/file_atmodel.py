@@ -51,9 +51,9 @@ class FileATModel(ATModel):
     # the abstract property method implementation. Hence, each attribute
     # is defined as a @property and @property.setter method using the
     # private underscore convention.
-    #-------------------------------------------------------------------------+
+    #--------------------------------------------------------------------------+
     # FileATModel class constructor __init__() method
-    #-------------------------------------------------------------------------+
+    #--------------------------------------------------------------------------+
     def __init__(self,  activityname: str = None, 
                         activities: List[ActivityEntry] = None,
                         created_date: str = None,
@@ -72,7 +72,7 @@ class FileATModel(ATModel):
         self._activity_store_uri = activity_store_uri \
             if atu.str_notempty(activity_store_uri) else FATM_DEFAULT_ACTIVITY_STORE_URI
         # Public Property attributes initialization
-    #-------------------------------------------------------------------------+
+    #--------------------------------------------------------------------------+
 
     def to_dict(self):
         '''Return self FileATModel object as a dictionary, with the activities
@@ -108,9 +108,9 @@ class FileATModel(ATModel):
         return ret
     #endregion FileATModel Class  
 
-    #-------------------------------------------------------------------------+
+    #--------------------------------------------------------------------------+
     #region ATModel Properties (from ATModel abstract base class)
-    #-------------------------------------------------------------------------+
+    #--------------------------------------------------------------------------+
     @property
     def activityname(self) -> str:
         return self._activityname
@@ -160,15 +160,15 @@ class FileATModel(ATModel):
         self._activity_store_uri = value
     #endregion
 
-    #-------------------------------------------------------------------------+
+    #--------------------------------------------------------------------------+
     #region FileATModel Properties (specific to FileATModel class)
-    #-------------------------------------------------------------------------+
+    #--------------------------------------------------------------------------+
     # tbd
     #endregion
 
-    #-------------------------------------------------------------------------+
+    #--------------------------------------------------------------------------+
     #region ATModel Methods (from ATModel abstract base class)
-    #-------------------------------------------------------------------------+
+    #--------------------------------------------------------------------------+
     def add_activity(self, ae: ActivityEntry) -> ActivityEntry:
         """ FileATModel.add_activity() - concrete impl for ABC method, 
             add an ActivityEntry to the activities list"""
@@ -224,9 +224,9 @@ class FileATModel(ATModel):
         raise TypeError(m)
     #endregion
 
-    #-------------------------------------------------------------------------+
+    #--------------------------------------------------------------------------+
     #region FileATModel Methods (specific to FileATModel class)
-    #-------------------------------------------------------------------------+
+    #--------------------------------------------------------------------------+
     @staticmethod
     def default_creation_date() -> str:
         """ Return the current date and time as a ISO format string """
@@ -251,5 +251,5 @@ class FileATModel(ATModel):
             if not isinstance(ae, ActivityEntry):
                 raise ValueError(f"Expected ActivityEntry instance, got {type(ae).__name__}")
         return al
-    #-------------------------------------------------------------------------+
+    #--------------------------------------------------------------------------+
 

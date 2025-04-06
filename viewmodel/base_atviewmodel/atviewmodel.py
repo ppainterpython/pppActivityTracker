@@ -16,15 +16,37 @@ class ATViewModel(ABC):
         particular bindings beyond the ViewModel but is name of where the data 
         is accessed.
     '''
-    
+    #--------------------------------------------------------------------------+
+    #region ATViewModel Abstract Properties 
+    #--------------------------------------------------------------------------+
     @property
     @abstractmethod
-    def activity_store_uri(self):
+    def activity_store_uri(self) -> str:
         raise NotImplementedError
     
     @activity_store_uri.setter
     @abstractmethod
-    def activity_store_uri(self, value):
+    def activity_store_uri(self, value) -> None:
         raise NotImplementedError
+    
+    @property
+    @abstractmethod
+    def initialized(self) -> bool:
+        raise NotImplementedError
+    #endregion ATViewModel Abstract Properties 
+    #--------------------------------------------------------------------------+
+    #region ATViewModel Abstract Methods 
+    @abstractmethod
+    def initialize(self) -> None:
+        '''
+        Initialize the ViewModel, typically called after the View is set.'''
+        raise NotImplementedError
+
+    @abstractmethod
+    def stop(self) -> None:
+        '''Stop and cleanup the ViewModel, stopping any background threads.'''
+        raise NotImplementedError
+    #endregion ATViewModel Abstract Methods 
+    #--------------------------------------------------------------------------+
     
 

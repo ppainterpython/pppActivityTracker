@@ -47,7 +47,7 @@ def test_application_class():
     # Test the attributes of the Application class
     assert isinstance(app.atv, atmain.atview.ATView), \
         "ATView instance is not created or is of incorrect type"
-    assert isinstance(app.atvm, atmain.mainatviewmodel.MainATViewModel), \
+    assert isinstance(app.atvm, atmain.main_atviewmodel.MainATViewModel), \
         "MainATViewModel instance is not created or is of incorrect type"
     assert app.atvm.activity_store_uri == AT_DEFAULT_ACTIVITY_STORE_URI, \
         f"Expected atvm.activity_store_uri: '{AT_DEFAULT_ACTIVITY_STORE_URI}' " \

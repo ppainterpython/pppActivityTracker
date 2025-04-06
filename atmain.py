@@ -11,14 +11,14 @@ logger.debug(f"{p}Imported module: {__name__}")
 logger.debug(f"{p}{__name__} Logging initialized.")
 #endregion atlogging_setup()
 #------------------------------------------------------------------------------+
-from view import atview 
-from viewmodel import mainatviewmodel
+from view.atview import ATView 
+from viewmodel.main_atviewmodel import MainATViewModel
 
 class Application:
     """Activity Tracker Main Application"""
     def __init__(self):
-        atv: atview.ATView = None
-        atvm: mainatviewmodel.MainATViewModel = None
+        atv: ATView = None
+        atvm: MainATViewModel = None
         p=atu.pfx(mn=__name__)
         logger.info(f"{p}Initializing Application")
         # Load the configuration file
@@ -26,11 +26,11 @@ class Application:
         # config = atconfig.ATConfig(AT_DEFAULT_CONFIG_FILE)
 
         # Create the ATView for a UX
-        self.atv = atview.ATView()
+        self.atv = ATView()
         logger.debug(f"{p}ATView created")
 
         # Create an MainATViewModel
-        self.atvm = mainatviewmodel.MainATViewModel(self.atv)
+        self.atvm = MainATViewModel(self.atv)
         logger.debug(f"{p}MainATViewModel created")
 
         # Which subclass(es) of ATModel are used is determined by the

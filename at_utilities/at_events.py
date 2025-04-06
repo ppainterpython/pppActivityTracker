@@ -21,20 +21,19 @@ event handler functions.
 TODO: Expand to multiple worker threads for each event type with its own queue 
 and signal event callback method.
 '''
-
-
 import logging
-from atconstants import AT_APP_NAME, AT_LOG_FILE, AT_DEFAULT_CONFIG_FILE
+from atconstants import *
 from at_utilities.at_logging import atlogging_setup
 import at_utilities.at_utils as atu
-
-# Setup logging for AT
-if __name__ == "__main__":
-    p = atu.pfx()
-    logger = atlogging_setup(AT_APP_NAME)
-    logger.debug(f"{p}Imported module: {__name__}")
-    logger.debug(f"{p} Logging initialized.")
-
+#------------------------------------------------------------------------------+
+#region atlogging_setup()
+# Setup logging for AT prior to importing the main application modules
+p = atu.pfx(mn=__name__)
+logger = atlogging_setup(AT_APP_NAME)
+logger.debug(f"{p}Imported module: {__name__}")
+logger.debug(f"{p} Logging initialized.")
+#endregion atlogging_setup()
+#------------------------------------------------------------------------------+
 import threading, queue
 import at_utilities.at_utils as atu
 from at_utilities import at_events as atev
@@ -129,17 +128,12 @@ class ATEvent ():
     #endregion future
 #endregion class ATEvent
 #------------------------------------------------------------------------------+
-
-#------------------------------------------------------------------------------+
 #region class ATViewEvent
 class ATViewEvent(ATEvent):
     '''Event class for events published by the AT View.'''
     def __init__(self, event_name = None, event_data = None):
         super().__init__(event_name, event_data)
 #endregion class ATViewEvent        
-#------------------------------------------------------------------------------+
-        
-
 #------------------------------------------------------------------------------+
 #region class ATEventQueue
 class ATEventQueue (queue.Queue):
@@ -183,8 +177,6 @@ class ATEventQueue (queue.Queue):
     def qsize(self):
         return self.queue.qsize()
 #endregion class ATEventQueue
-#------------------------------------------------------------------------------+
-
 #------------------------------------------------------------------------------+
 #region class ATEVentManager
 #------------------------------------------------------------------------------+
@@ -241,7 +233,8 @@ class ATEventManager():
     def process_events_loop(self):
         '''Main loop to Process events from event queues'''
         p = pfx(self)
-        print(f"{p} Entry: self.stopped() = {self.stopped()}.")
+        m = f"{p} Entry: self.stopped() = {self.stopped()}."
+        logger.debug(m); print(m)
         # Runs until the self.stopped() method returns True, 
         # indicating that the self.stop_signal has been set.
         while not self.stopped():  # Loop until stop_event is set
@@ -272,7 +265,8 @@ class ATEventManager():
                 # print(f"{p} signal_event.is_set():False.")
                 # print(f"{p} signal_event.wait({to}).")
                 self.signal_event.wait(to)
-                # print(f"{p} signal_event.wait({to}) expired.")
+                m = f"{p} signal_event.wait({to}) expired."
+                logger.debug(m); print(m)
         print(f"{p} Exit: self.Stopped = {self.stopped}.")
  
     def process_an_event(self, event):
