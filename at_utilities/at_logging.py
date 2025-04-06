@@ -37,7 +37,6 @@ _logging_lock = threading.Lock()
 def atlogging_setup(logger_name: str = AT_APP_NAME) -> logging.Logger:
     """Set up logging for both stdout and a log file (thread-safe singleton)."""
     try:
-        p = atu.pfx()
         global at_logging_initialized
         if logger_name == AT_TEST_EXCEPTION_LOGGER_NAME:
             logger = logging.getLogger(AT_APP_NAME)
@@ -48,7 +47,7 @@ def atlogging_setup(logger_name: str = AT_APP_NAME) -> logging.Logger:
             logger.setLevel(logging.DEBUG)  # Set the global logging level
             if at_logging_initialized:
                 logger = logging.getLogger(logger_name)
-                logger.debug(f"{p} Logging handlers previously initialized.")
+                logger.debug(f" Logging handlers previously initialized.")
                 return logging.getLogger(logger_name)
             else:
                 at_logging_initialized = True
@@ -59,8 +58,11 @@ def atlogging_setup(logger_name: str = AT_APP_NAME) -> logging.Logger:
             msg_before = f"Root logger handlers before atlogging_setup({lc}): {root_logger.handlers}"
 
             # Create a formatter for consistent log messages
+            # Note: not using {name} of the logger, since there is only one
+            fmtstr="{asctime}.{msecs:03.0f}:{levelname}:[{process}:{thread}]:" + \
+                "{module}.{funcName}() {message}"
             formatter = logging.Formatter(
-                fmt="{asctime}.{msecs:03.0f}:{levelname}:[{name}] {message}",
+                fmt=fmtstr,
                 datefmt="%Y-%m-%d %H:%M:%S",
                 style="{"
             )
@@ -78,27 +80,26 @@ def atlogging_setup(logger_name: str = AT_APP_NAME) -> logging.Logger:
             # Add handlers to the logger
             logger.addHandler(console_handler)
             logger.addHandler(file_handler)
-            p = atu.pfx()
             hdr = "========================================================="
             hdr += "[" + hdr + hdr + "]"
-            logger.debug(f"{p}{hdr}")
-            logger.debug(f"{p} 1st log message, initialized Logging handlers.")
+            logger.debug(f"{hdr}")
+            logger.debug(f" 1st log message, initialized Logging handlers.")
             # Debug: List root logger handlers
-            logger.debug(f"{p}  Logger name: {logger.name}, Level: {logger.level}, " + \
+            logger.debug(f"  Logger name: {logger.name}, Level: {logger.level}, " + \
                         f"Logging handlers count: {len(logger.handlers)}")
             for handler in logger.handlers:
-                logger.debug(f"{p}    Handler: {handler}, Level: {handler.level}")
-            logger.debug(f"{p}atlogging_setup(): Complete.")
+                logger.debug(f"    Handler: {handler}, Level: {handler.level}")
+            logger.debug(f"atlogging_setup(): Complete.")
             logger.debug(msg_before)
             root_logger = logging.getLogger()
             lc = len(root_logger.handlers)
             lnc = len(logger.handlers)
-            logger.debug(f"{p}Root logger handlers after atlogging_setup({lc}): {root_logger.handlers}")
-            logger.debug(f"{p}{logger_name} logger handlers after atlogging_setup({lnc}): {logger.handlers}")
+            logger.debug(f"Root logger handlers after atlogging_setup({lc}): {root_logger.handlers}")
+            logger.debug(f"{logger_name} logger handlers after atlogging_setup({lnc}): {logger.handlers}")
             return logger
     except Exception as e:
-        m1 = f"{p}Error in atlogging_setup for requested logger: '{logger}'"
-        m2 = f"{p}Exception: {e}"
+        m1 = f"Error in atlogging_setup for requested logger: '{logger}'"
+        m2 = f"Exception: {e}"
         _ = logger.debug(m1) if logger is not None else print(m1)
         _ = logger.debug(m2) if logger is not None else print(m2)
         raise
@@ -111,7 +112,6 @@ def atlogging_setup(logger_name: str = AT_APP_NAME) -> logging.Logger:
 
 # Initialize logging for running/debugging this script directly
 if __name__ == "__main__":
-    p = atu.pfx()
     logger = atlogging_setup(AT_APP_NAME)
     logger.debug(f"Imported module: {__name__}")
     logger.debug(f"{__name__} Logging initialized.")

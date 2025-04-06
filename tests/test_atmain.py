@@ -5,6 +5,8 @@ import logging, pytest
 from atconstants import *
 from at_utilities.at_logging import atlogging_setup
 import at_utilities.at_utils as atu
+from view.atview import ATView
+from viewmodel.main_atviewmodel import MainATViewModel
 import atmain
 from atmain import Application as App
 
@@ -15,26 +17,24 @@ def setup_and_teardown(autouse=True):
     This is used to initialize logging and clean up after tests.
     """
     # Setup logging for the module
-    p = atu.pfx(mn=__name__)
     logger = atlogging_setup(AT_APP_NAME)
     if logger:
-        logger.debug(f"{p}Setup for test module: {__name__}")
+        logger.debug(f"Setup for test module: {__name__}")
     
     yield
 
     if logger:
-        logger.debug(f"{p}Teardown for test module: {__name__}")
+        logger.debug(f"Teardown for test module: {__name__}")
 
 # Setup logging for AT compaitble with pytest and other modules
-p = atu.pfx(mn=__name__)
 logger = atlogging_setup(AT_APP_NAME)
 if logger is None:
     logger = logging.getLogger(AT_APP_NAME)  # fallback to default logger if setup failed
     if logger is None:
         logger = logging.getLogger()  # fallback to the root logger if all else fails
 if logger is not None:
-    logger.debug(f"{p}Imported module: {__name__}")
-    logger.debug(f"{p} Logging initialized.")
+    logger.debug(f"Imported module: {__name__}")
+    logger.debug(f" Logging initialized.")
 
 #-----------------------------------------------------------------------------+
 #region test_application_class()
@@ -45,9 +45,9 @@ def test_application_class():
     assert app is not None, "Failed to create an instance of the Application class"
     
     # Test the attributes of the Application class
-    assert isinstance(app.atv, atmain.atview.ATView), \
+    assert isinstance(app.atv, ATView), \
         "ATView instance is not created or is of incorrect type"
-    assert isinstance(app.atvm, atmain.main_atviewmodel.MainATViewModel), \
+    assert isinstance(app.atvm, MainATViewModel), \
         "MainATViewModel instance is not created or is of incorrect type"
     assert app.atvm.activity_store_uri == AT_DEFAULT_ACTIVITY_STORE_URI, \
         f"Expected atvm.activity_store_uri: '{AT_DEFAULT_ACTIVITY_STORE_URI}' " \
@@ -58,7 +58,7 @@ def test_application_class():
         f"Expected atvm.activity_store_uri: '{newval}' " + \
             f"but received '{app.atvm.activity_store_uri}'"
     # Test the app.atvm.atview property setter and getter
-    assert (newview := atmain.atview.ATView()) is not None, \
+    assert (newview := ATView()) is not None, \
         "Failed to create a new instance of ATView for testing the atview property"
     assert (oldview := app.atvm.atview) is not None, \
         f"Failed to get the initial atview property from MainATViewModel"

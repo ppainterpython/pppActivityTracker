@@ -5,15 +5,14 @@ from atconstants import *
 import at_utilities.at_utils as atu
 from at_utilities.at_logging import atlogging_setup
 # Setup logging for AT compaitble with pytest and other modules
-p = atu.pfx(mn=__name__)
 logger = atlogging_setup(AT_APP_NAME)
 if logger is None:
     logger = logging.getLogger(AT_APP_NAME)  # fallback to default logger if setup failed
     if logger is None:
         logger = logging.getLogger()  # fallback to the root logger if all else fails
 if logger is not None:
-    logger.debug(f"{p}Imported module: {__name__}")
-    logger.debug(f"{p} Logging initialized.")
+    logger.debug(f"Imported module: {__name__}")
+    logger.debug(f" Logging initialized.")
 
 #------------------------------------------------------------------------------+
 #region ISO Date Utilities
@@ -856,59 +855,6 @@ def test_ptid():
     assert tid == int(match.group(2)), \
         f"ptid() returned tid '{int(match.group(2))}' does not match '{tid}'"
 #endregion  
-
-#region test_pfx()
-def test_pfx():
-    """Test pfx() function """
-
-    # Test 1: atu.pfx(mn=__name__)
-    pfx_value = atu.pfx(mn=__name__)
-    # Check if the pfx_value is a str with correct format of content
-    # Will be like '''[35312:8996]:tests.test_atutilities.test_pfx()'' 
-    # with different pid,tid
-    pattern = r'(^\[\d+:\d+\]):(.*)\.(.*)$'
-    g2 = __name__; g3 = 'test_pfx()'
-    m = re.compile(pattern)
-    match = m.match(pfx_value)
-    assert match, \
-        f"pfx() returned format '{pfx_value}', " + \
-            "expected like '[25424:20684]:unknown.test_pfx()'"
-    assert match.group(2) == g2, \
-        f"pfx() returned '{match.group(2)}' instead of '{g2}'"
-    assert match.group(3) == g3, \
-        f"pfx() returned '{match.group(2)}' instead of '{g3}'"
-
-    # Test 2: atu.pfx()
-    pfx_value = atu.pfx()
-    # Check if the pfx_value is a str with correct format of content
-    # Will be like ''[25424:20684]:unknown.test_pfx()' with different pid,tid
-    pattern = r'(^\[\d+:\d+\]):(.*)\.(.*)$'
-    m = re.compile(pattern)
-    match = m.match(pfx_value)
-    assert match, \
-        f"pfx() returned format '{pfx_value}', " + \
-            "expected like '[25424:20684]:unknown.test_pfx()'"
-    
-    # Test 3: atu.pfx(__name__, __file__)
-    class pfx_test:
-        def __init__(self):
-            self.pfx = atu.pfx(self)
-    pfx_value = pfx_test().pfx
-    # Check if the pfx_value is a str with correct format of content
-    # Will be like ''[11984:39768]:pfx_test.__init__()'' with different pid,tid
-    g2 = 'pfx_test'; g3 = '__init__()'
-    pattern = r'(^\[\d+:\d+\]):(.*)\.(.*)$'
-    m = re.compile(pattern)
-    match = m.match(pfx_value)
-    retval = match.group(0)
-    assert match, \
-        f"pfx() returned format '{pfx_value}', " + \
-            "expected like '[25424:20684]:unknown.test_pfx()'"
-    assert match.group(2) == g2, \
-        f"pfx() returned '{match.group(2)}' instead of '{g2}'"
-    assert match.group(3) == g3, \
-        f"pfx() returned '{match.group(2)}' instead of '{g3}'"
-#endregion test_pfx() 
 
 #region test_is_running_in_pytest()
 def test_is_running_in_pytest():

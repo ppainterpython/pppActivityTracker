@@ -28,16 +28,14 @@ import at_utilities.at_utils as atu
 #------------------------------------------------------------------------------+
 #region atlogging_setup()
 # Setup logging for AT prior to importing the main application modules
-p = atu.pfx(mn=__name__)
 logger = atlogging_setup(AT_APP_NAME)
-logger.debug(f"{p}Imported module: {__name__}")
-logger.debug(f"{p} Logging initialized.")
+logger.debug(f"Imported module: {__name__}")
+logger.debug(f" Logging initialized.")
 #endregion atlogging_setup()
 #------------------------------------------------------------------------------+
 import threading, queue
 import at_utilities.at_utils as atu
 from at_utilities import at_events as atev
-from at_utilities.at_utils import pfx as pfx
  
 #------------------------------------------------------------------------------+
 #region class ATSignalEvent
@@ -220,13 +218,12 @@ class ATEventManager():
 
     def start(self):
         '''Start the event manager thread'''
-        p = pfx(self)
-        logger.debug(f"{p} starting event manager.")
+        logger.debug(f" starting event manager.")
         if not self.event_thread.is_alive():
             self.running = True
             self.event_thread.start()
             t = self.event_thread.native_id
-            logger.debug(f"{p} started worker thread {t}.")
+            logger.debug(f" started worker thread {t}.")
 
     def stopped(self) -> bool:
         '''Check if the event manager stop event is set'''
@@ -240,60 +237,56 @@ class ATEventManager():
 
     def stop(self):
         '''Stop the event manager threads'''
-        p = pfx(self)
-        prlogger.debugint(f"{p} stopping event manager.")
+        logger.debug(f" stopping event manager.")
         self.stop_event.set()  # Set stop_event to signal worker threads to stop
 
     def process_events_loop(self):
         '''Main loop to Process events from event queues'''
-        p = pfx(self)
-        m = f"{p} Entry: self.stopped() = {self.stopped()}."
+        m = f" Entry: self.stopped() = {self.stopped()}."
         logger.debug(m); print(m)
         # Runs until the self.stopped() method returns True, 
         # indicating that the self.stop_signal has been set.
         while not self.stopped():  # Loop until stop_event is set
-            p = pfx(self)
-            logger.debug(f"{p} wait next event.")
+            logger.debug(f" wait next event.")
             if self.signal_event.is_set():
-                logger.debug(f"{p} signal_event.is_set()={self.signal_event.is_set()}.")
+                logger.debug(f" signal_event.is_set()={self.signal_event.is_set()}.")
                 all_queues_empty = True
                 eqount = len(self.event_queues)
                 ecount = self.total_events()
-                logger.debug(f"{p} process '{ecount}' events in {eqount} queues.")
+                logger.debug(f" process '{ecount}' events in {eqount} queues.")
                 for et in self.event_queues:
                     eq = self.event_queues[et]
                     while not eq.empty():
-                        logger.debug(f"{p} process queue {et}" + \
+                        logger.debug(f" process queue {et}" + \
                               f".count={eq.qsize()} ")
                         # Get an event from the queue until none are left
                         event = eq.get()
                         self.process_an_event(event)
                         all_queues_empty = False 
-                    logger.debug(f"{p} finished queue {et}" + \
+                    logger.debug(f" finished queue {et}" + \
                           f".count={eq.qsize()}")
                 # clear signal event when queues are empty
                 if all_queues_empty:  
                     self.signal_event.clear()
-                    logger.debug(f"{p} signal_event.clear().")
+                    logger.debug(f" signal_event.clear().")
             else:
                 to = 2.0
-                # print(f"{p} signal_event.is_set():False.")
-                # print(f"{p} signal_event.wait({to}).")
+                # print(f" signal_event.is_set():False.")
+                # print(f" signal_event.wait({to}).")
                 self.signal_event.wait(to)
-                m = f"{p} signal_event.wait({to}) expired."
+                m = f" signal_event.wait({to}) expired."
                 logger.debug(m); logger.debug(m)
-        logger.debug(f"{p} Exit: self.Stopped = {self.stopped}.")
+        logger.debug(f" Exit: self.Stopped = {self.stopped}.")
  
     def process_an_event(self, event):
         '''Process an event by calling the event's callback method'''
-        p = pfx(self)
         et = type(event).__name__; en = event.event_name; ed = event.event_data 
-        logger.debug(f"{p}process_an_event(): {et}[event_name='{en}', event_data='{ed}']")
+        logger.debug(f"process_an_event(): {et}[event_name='{en}', event_data='{ed}']")
         match type(event):
             case atev.ATViewEvent:
-                logger.debug(f"{p}{et} event processing")
+                logger.debug(f"{et} event processing")
             case atev.ATEvent:
-                logger.debug(f"{p}{et} event processing")
+                logger.debug(f"{et} event processing")
             case _:
                 pass
         return
@@ -303,16 +296,15 @@ class ATEventManager():
         If the queue already exists, return it.
         If the queue does not exist and create is True, create the event queue. 
         If the queue does not exist and create is False, return None.'''
-        p = pfx(self)
-        logger.debug(f"{p} event_type='{event_type}', create={create}, " \
+        logger.debug(f" event_type='{event_type}', create={create}, " \
               f"event_queues({len(self.event_queues)})=" \
                 f"{list(self.event_queues.keys())}")
         with self.lock:  # Ensure thread-safe access to event queues
-            logger.debug(f"{p} Returning existing event queue for event type: " \
+            logger.debug(f" Returning existing event queue for event type: " \
                       f"{event_type}.")
             if event_type in self.event_queues:
                 eq = self.event_queues[event_type]
-                logger.debug(f"{p} Returning existing event queue for event type: " \
+                logger.debug(f" Returning existing event queue for event type: " \
                       f"{event_type}.")
                 return eq
             elif create:
@@ -326,22 +318,22 @@ class ATEventManager():
     def add_event_queue(self, event_type : str):
         '''Add an event_queue to the EventManager for event_type if not
         already added.'''
-        p = pfx(self)
-        logger.debug(f"{p} Entry: event_type='{event_type}' " + \
+        logger.debug(f" Entry: event_type='{event_type}' " + \
               f"event_queues({len(self.event_queues)})=" + \
               f"{list(self.event_queues.keys())}")
         with self.lock: # Lock for one thread modifies event_queues at a time
             # Check if the event type already exists in the event queues
             if isinstance(event_type, str) and not event_type in self.event_queues :
                 # Add the event queue for event type if not already there.
+                #TODO: bug here
                 self.event_queues[event_type] = ATEventQueue()
-                logger.debug(f"{p} Added event queue for event type: {event_type}" + \
+                logger.debug(f" Added event queue for event type: {event_type}" + \
                       f"event_queues({len(self.event_queues)})=" + \
                       f"{list(self.event_queues.keys())}")
                 # True when new queue is added
                 return True
             else:
-                logger.debug(f"{p} NOT Added event queue for event type: " + \
+                logger.debug(f" NOT Added event queue for event type: " + \
                       f"{event_type}" + \
                       f"event_queues({len(self.event_queues)})=" + \
                       f"{list(self.event_queues.keys())}")
@@ -349,19 +341,18 @@ class ATEventManager():
 
     def publish(self, event: ATEvent):
         '''Publish an event to the event queue based on the event type'''
-        p = pfx(self)
         et = type(event).__name__; en = event.event_name
-        logger.debug(f"{p}:Entry event=[{et}.{en}]")
+        logger.debug(f":Entry event=[{et}.{en}]")
         # Add the event to the appropriate event queue based on event type.
         if self.get_event_queue(et):
             with self.lock:
                 self.event_queues[en].put(event)
-            logger.debug(f"{p}:Published Event[{et}.{en}] to queue: ")
+            logger.debug(f":Published Event[{et}.{en}] to queue: ")
 
         # Signal the event queue to process the event
         if not self.signal_event.is_set():
             self.signal_event.set()
-            logger.debug(f"{p}:Signal event set.")
+            logger.debug(f":Signal event set.")
 
     def subscribe(self, event_name, callback):
         while not self.event_queue.empty():

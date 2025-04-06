@@ -5,10 +5,9 @@ from at_utilities.at_logging import atlogging_setup
 #------------------------------------------------------------------------------+
 #region atlogging_setup()
 # Configur logging before importing the primary application modules
-p=atu.pfx(mn=__name__)
 logger = atlogging_setup(AT_APP_NAME)
-logger.debug(f"{p}Imported module: {__name__}")
-logger.debug(f"{p}{__name__} Logging initialized.")
+logger.debug(f"Imported module: {__name__}")
+logger.debug(f"{__name__} Logging initialized.")
 #endregion atlogging_setup()
 #------------------------------------------------------------------------------+
 from view.atview import ATView 
@@ -19,19 +18,18 @@ class Application:
     def __init__(self):
         atv: ATView = None
         atvm: MainATViewModel = None
-        p=atu.pfx(mn=__name__)
-        logger.info(f"{p}Initializing Application")
+        logger.info(f"Initializing Application")
         # Load the configuration file
         # TODO: Implement configuration file loading logic
         # config = atconfig.ATConfig(AT_DEFAULT_CONFIG_FILE)
 
         # Create the ATView for a UX
         self.atv = ATView()
-        logger.debug(f"{p}ATView created")
+        logger.debug(f"ATView created")
 
         # Create an MainATViewModel
         self.atvm = MainATViewModel(self.atv)
-        logger.debug(f"{p}MainATViewModel created")
+        logger.debug(f"MainATViewModel created")
 
         # Which subclass(es) of ATModel are used is determined by the
         # configuration file. The MainATViewModel is responsible to load the
@@ -39,20 +37,19 @@ class Application:
 
     def run(self) -> None:
         """Run the ATView application loop"""
-        p=atu.pfx(mn=__name__)
         atenv = atu.at_env_info(__name__,logger)
         run_mode = atenv[3]
-        logger.debug(f"{p}Running in {run_mode} mode")
+        logger.debug(f"Running in {run_mode} mode")
         if run_mode == "direct":
-            logger.debug(f"{p}Running application atv.mainloop()")#  pragma: no cover
+            logger.debug(f"Running application atv.mainloop()")#  pragma: no cover
             # Start the ATView main loop only in direct mode
             self.atv.mainloop() if "direct" in atenv else None # pragma: no cover
-            logger.debug(f"{p}Finished application atv.mainloop()") # pragma: no cover
+            logger.debug(f"Finished application atv.mainloop()") # pragma: no cover
         return None
 
-logger.info(f"{p}Starting the application")
+logger.info(f"Starting the application")
 app = Application()
 app.run()
-logger.info(f"{p}Application exited")
+logger.info(f"Application exited")
 
 #------------------------------------------------------------------------------+

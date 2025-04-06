@@ -7,10 +7,9 @@ import at_utilities.at_utils as atu
 from at_utilities.at_logging import atlogging_setup 
 #region atlogging_setup()
 # Configur logging before importing the primary application modules
-p=atu.pfx(mn=__name__)
 logger = atlogging_setup(AT_APP_NAME)
-logger.debug(f"{p}Imported module: {__name__}")
-logger.debug(f"{p}{__name__} Logging initialized.")
+logger.debug(f"Imported module: {__name__}")
+logger.debug(f"{__name__} Logging initialized.")
 #endregion atlogging_setup()
 from at_utilities.at_events import ATEvent
 from viewmodel.base_atviewmodel.atviewmodel import ATViewModel
@@ -19,8 +18,7 @@ from viewmodel.main_atviewmodel import MainATViewModel
 #------------------------------------------------------------------------------+
 #region test_viewmodel_constructor()
 def test_viewmodel_constructor():
-    pfx = atu.pfx(mn=__name__)
-    logger.debug(f"{pfx}Starting test_viewmodel_constructor()")
+    logger.debug(f"Starting test_viewmodel_constructor()")
     matvm = MainATViewModel()
     assert matvm is not None, \
         f"Failed to create an instance of MainATViewModel."
@@ -39,13 +37,12 @@ def test_viewmodel_constructor():
         f"Expected MainATViewModel to be uninitialized after stop(), " \
         f"but it is still initialized."
     del matvm
-    logger.debug(f"{pfx}Completed test_viewmodel_constructor()")
+    logger.debug(f"Completed test_viewmodel_constructor()")
 #endregion test_viewmodel_constructor()
 #------------------------------------------------------------------------------+
 #region test_viewmodel_eventing()
 def test_viewmodel_eventing():
-    pfx = atu.pfx(mn=__name__)
-    logger.debug(f"{pfx}Starting test_viewmodel_eventing()")
+    logger.debug(f"Starting test_viewmodel_eventing()")
     
     # Create an instance of MainATViewModel
     matvm = MainATViewModel()
@@ -64,5 +61,5 @@ def test_viewmodel_eventing():
     matvm.stop()
     
     del matvm
-    logger.debug(f"{pfx}Completed test_viewmodel_eventing()")
+    logger.debug(f"Completed test_viewmodel_eventing()")
     #endregion test_viewmodel_eventing()

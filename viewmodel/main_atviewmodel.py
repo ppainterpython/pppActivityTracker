@@ -5,10 +5,9 @@ from at_utilities.at_logging import atlogging_setup
 #------------------------------------------------------------------------------+
 #region atlogging_setup()
 # Configur logging before importing the primary application modules
-p=atu.pfx(mn=__name__)
 logger = atlogging_setup(AT_APP_NAME)
-logger.debug(f"{p}Imported module: {__name__}")
-logger.debug(f"{p}{__name__} Logging initialized.")
+logger.debug(f"Imported module: {__name__}")
+logger.debug(f"{__name__} Logging initialized.")
 #endregion atlogging_setup()
 #------------------------------------------------------------------------------+
 from viewmodel.base_atviewmodel.atviewmodel import ATViewModel
@@ -46,7 +45,7 @@ class MainATViewModel(ATViewModel):
         self._atview: atview.ATView = atv # Reference to the View object for AT.
         self._atem: ATEventManager = None # Event manager for this ViewModel.
         self._initialized: bool = False # Track if initialize() has been called.
-        logger.debug(f"{p} MainATViewModel initialized with atv: {self._atview}")
+        logger.debug(f" MainATViewModel initialized with atv: {self._atview}")
     #endregion __init__() method
     #--------------------------------------------------------------------------+
     #region MainATViewModel Properties (from ATViewModel abstract base class)
@@ -97,13 +96,12 @@ class MainATViewModel(ATViewModel):
         Stop and cleanup the ViewModel, stopping any background threads.
         This method should be called when the ViewModel is no longer needed.
         """
-        p = atu.pfx(mn=__name__)
-        logger.debug(f"{p}Stopping MainATViewModel")
+        logger.debug(f"Stopping MainATViewModel")
         if self._atem:
             self._atem.stop()
             self._atem = None
         self._initialized = False
-        logger.debug(f"{p}MainATViewModel stopped")
+        logger.debug(f"MainATViewModel stopped")
     #endregion stop() method
 
     #region publish(self, event: ATEvent) method
@@ -115,7 +113,7 @@ class MainATViewModel(ATViewModel):
         if self._atem and self._initialized:
             self._atem.publish(event)
         else:
-            logger.warning(f"{p}Cannot publish event, ATEventManager not initialized.")
+            logger.warning(f"Cannot publish event, ATEventManager not initialized.")
     #endregion MainATViewModel Methods (from ATViewModel abstract base class)
     #--------------------------------------------------------------------------+
     #endregion MainATViewModel Class

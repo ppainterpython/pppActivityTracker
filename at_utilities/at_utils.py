@@ -421,31 +421,6 @@ def ptid()->str:
     return f"[{get_pid()}:{get_tid()}]"
 #endregion
 
-#region pfx()
-def pfx(o :object=None, mn :str="unknown") -> str:
-    '''"""Return a prefix string for logging including PID:TID, module/class,
-    and function names. From a method, use self for parameter o.'''
-    import sys
-    pt = ptid() #; me = o if o is not None else __name__
-    rv = ""
-    if o is not None: # extract class name
-        cn = o.__class__.__name__ if o is not None and hasattr(o, "__class__") else __name__
-        mn = sys._getframe(1).f_code.co_name if hasattr(sys, "_getframe") and sys._getframe(1) else "<unknown>"
-        rv = f"{pt}:{cn}.{mn}()"
-    elif str_notempty(mn):
-        # Use the provided method name (mn) for the function name
-        stack = inspect.stack()
-        caller_frame = stack[1] if len(stack) > 1 else None
-        caller_function = caller_frame.function
-        caller_module = caller_frame.f_globals["__name__"]
-        rv = f"{pt}:{caller_module}.{caller_function}()"
-        # cf = inspect.currentframe().f_back # Get the caller's frame
-        # fn = cf.f_code.co_name if cf and hasattr(cf, 'f_code') else __name__ 
-        # rv = f"{pt}:{mn}.{fn}()"
-    # rv = str(inspect.currentframe().f_code.co_name)
-    return rv 
-#endregion 
-
 #region at_env_info)
 # label the tuple elements for clarity
 ATU_CALLER_NAME = 0         # 0: callername
@@ -545,20 +520,19 @@ def at_env_info(callername:str, logger: Logger,
         print(f"                 app_cwd: {app_cwd}")
         print("========================")
     if logger is not None:
-        p = pfx(cn)
-        logger.debug(f"{p}at_env_info)={ret_tuple}")
-        logger.debug(f"{p}========================")
-        logger.debug(f"{p}         Caller __name__: {cn}")
-        logger.debug(f"{p}   Application full path: {app_full_path}")
-        logger.debug(f"{p}   Application file name: {app_file_name}")
-        logger.debug(f"{p}               Call mode: {call_mode}")
-        logger.debug(f"{p}       vscode_debug_mode: {vscode_debug_mode}")
-        logger.debug(f"{p}      vscode_pytest_mode: {vscode_pytest_mode}")
-        logger.debug(f"{p}pytest_debug_vscode_mode: {pytest_debug_vscode_mode}")
-        logger.debug(f"{p}             pytest_mode: {pytest_mode}")
-        logger.debug(f"{p}         python_sys_path: {python_sys_path}")
-        logger.debug(f"{p}                 app_cwd: {app_cwd}")
-        logger.debug(f"{p}========================")
+        logger.debug(f"at_env_info)={ret_tuple}")
+        logger.debug(f"========================")
+        logger.debug(f"         Caller __name__: {cn}")
+        logger.debug(f"   Application full path: {app_full_path}")
+        logger.debug(f"   Application file name: {app_file_name}")
+        logger.debug(f"               Call mode: {call_mode}")
+        logger.debug(f"       vscode_debug_mode: {vscode_debug_mode}")
+        logger.debug(f"      vscode_pytest_mode: {vscode_pytest_mode}")
+        logger.debug(f"pytest_debug_vscode_mode: {pytest_debug_vscode_mode}")
+        logger.debug(f"             pytest_mode: {pytest_mode}")
+        logger.debug(f"         python_sys_path: {python_sys_path}")
+        logger.debug(f"                 app_cwd: {app_cwd}")
+        logger.debug(f"========================")
     return tuple(ret) # Return a tuple with the values
 #endregion at_env_info)
 
