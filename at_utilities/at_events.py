@@ -346,7 +346,7 @@ class ATEventManager():
         # Add the event to the appropriate event queue based on event type.
         if self.get_event_queue(et):
             with self.lock:
-                self.event_queues[en].put(event)
+                self.event_queues[et].put(event)
             logger.debug(f":Published Event[{et}.{en}] to queue: ")
 
         # Signal the event queue to process the event
