@@ -1,7 +1,7 @@
 #------------------------------------------------------------------------------+
 from atconstants import *
 import at_utilities.at_utils as atu
-from at_utilities.at_logging import atlogging_setup 
+from at_logging.at_logging import atlogging_setup 
 #------------------------------------------------------------------------------+
 #region atlogging_setup()
 # Configur logging before importing the primary application modules

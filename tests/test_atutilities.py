@@ -3,7 +3,7 @@ import pytest, os, threading, re, logging
 from typing import List
 from atconstants import *
 import at_utilities.at_utils as atu
-from at_utilities.at_logging import atlogging_setup
+from at_logging.at_logging import atlogging_setup
 # Setup logging for AT compaitble with pytest and other modules
 logger = atlogging_setup(AT_APP_NAME)
 if logger is None:

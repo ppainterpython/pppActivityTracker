@@ -3,7 +3,7 @@
 #-----------------------------------------------------------------------------+
 import logging, pytest
 from atconstants import *
-from at_utilities.at_logging import atlogging_setup
+from at_logging.at_logging import atlogging_setup
 import at_utilities.at_utils as atu
 from view.atview import ATView
 from viewmodel.main_atviewmodel import MainATViewModel

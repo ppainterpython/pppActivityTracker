@@ -46,8 +46,12 @@ pppActivityTracker (project root)
 |
 ├── at_utilities/
 │   ├── at_events.py 
-│   ├── at_logging.py (unit test for ActivityEntry dataclass)
+│   ├── at_logging.py 
 │   └── at_utils.py/
+|
+├── at_logging/
+│   ├── at_logging.py 
+│   └── at_log_config.json/
 |
 ├── docs/
 |

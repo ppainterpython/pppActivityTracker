@@ -11,29 +11,39 @@ console and file handlers either under actual operation, pytext or single file
 debugging. This is important to avoid duplicate log messages in the output.
 '''
 #------------------------------------------------------------------------------+
-import logging, sys, os, threading
+import logging, logging.config, sys, json, threading, pathlib
 from atconstants import *
-cwd = os.getcwd(); sys.path.append(cwd)
-argv = sys.argv; app_full_path = argv[0] if len(argv) >= 1 else "unknown"
-
-# Add the current working directory to the path
-print(f"argv: {argv}, len='{len(argv)}'")
-print(f"argv[0]: {argv[0]}")
-app_full_path = argv[0] if len(argv) >= 1 else "unknown"
-cwd = os.getcwd()
-sys.path.append(cwd)  # Add the current working directory to the path
-print(f"Current working directory: {cwd}")
-print(f"App full path: {app_full_path}")
-print(f"sys.path: {sys.path}")
-
-
-from atconstants import *
-import at_utilities.at_utils as atu
 
 #------------------------------------------------------------------------------+
-#region atlogging_setup()
-at_logging_initialized = False
+# Globals for singleton use
+at_logging_initialized : bool = False
+at_log_config : dict = None
 _logging_lock = threading.Lock()
+#------------------------------------------------------------------------------+
+#region get_at_log_config()
+def get_at_log_config(config_file:str=AT_LOG_CONFIG_FILE,
+                      refresh:bool=False) -> dict:
+    """Get the logging configuration from the JSON file.
+    If refresh is True, reload the configuration file.
+    Get the logging configuration from the specified JSON file."""
+    global at_logging_initialized
+    global at_log_config
+    try:
+        config_file = pathlib.Path(config_file)
+        if not config_file.exists():
+            raise FileNotFoundError(f"Logging configuration file not found: {config_file}")
+        with open(config_file, "r") as f:
+            at_log_config = json.load(f)
+        logging.config.dictConfig(at_log_config)
+        print(at_log_config)
+        return at_log_config
+    except Exception as e:
+        m1 = f"Error in get_at_log_config(): {str(e)}"
+        print(m1)
+        raise
+#endregion get_at_log_config()
+#------------------------------------------------------------------------------+
+#region atlogging_setup()
 def atlogging_setup(logger_name: str = AT_APP_NAME) -> logging.Logger:
     """Set up logging for both stdout and a log file (thread-safe singleton)."""
     try:
@@ -49,8 +59,11 @@ def atlogging_setup(logger_name: str = AT_APP_NAME) -> logging.Logger:
                 logger = logging.getLogger(logger_name)
                 logger.debug(f" Logging handlers previously initialized.")
                 return logging.getLogger(logger_name)
-            else:
-                at_logging_initialized = True
+
+            # config_file = pathlib.Path("at_logging/at_log_config.json")
+            # with open(config_file, "r") as f:
+            #     at_log_config = f.read()
+            # logging.config.dictConfig(at_log_config) 
 
             # debug to learn
             root_logger = logging.getLogger()
@@ -96,6 +109,7 @@ def atlogging_setup(logger_name: str = AT_APP_NAME) -> logging.Logger:
             lnc = len(logger.handlers)
             logger.debug(f"Root logger handlers after atlogging_setup({lc}): {root_logger.handlers}")
             logger.debug(f"{logger_name} logger handlers after atlogging_setup({lnc}): {logger.handlers}")
+            at_logging_initialized = True
             return logger
     except Exception as e:
         m1 = f"Error in atlogging_setup for requested logger: '{logger}'"
@@ -105,16 +119,61 @@ def atlogging_setup(logger_name: str = AT_APP_NAME) -> logging.Logger:
         raise
 #endregion atlogging_setup()
 #------------------------------------------------------------------------------+
+#region ATLogger CLass - A LoggerAdapter
+class ATLogger(logging.LoggerAdapter):
+    """
+    A custom LoggerAdapter that adds a prefix info to log messages.
+    PARAMETERS
+    ----------
+    logger : logging.Logger
+        The logger instance to be used for logging.
+    container : object, optional
+        An optional name of container class or module making logging calls.
+    """
+    def __init__(self, logger: logging.Logger, container = None):
+        super().__init__(logger, {'cn': container or 'noContainerName'})
+
+    def process(self, msg: str, kwargs):
+        """Process the log message by adding the cn parameter to kwargs."""
+        if 'extra' not in kwargs:
+            kwargs['extra'] = {}
+        self.extra['extra']['cn'] = self.extra.get('cn', 'noContainerName')
+        return msg, kwargs
+#endregion ATLogger CLass - A LoggerAdapter
+#------------------------------------------------------------------------------+
 #region atlogging_header()
 #endregion atlogging_header()
 #------------------------------------------------------------------------------+
+class ClassLogger:
+    """A class to provide a logger with a specific class name."""
 
+    def __init__(self):
+        cn = self.__class__.__name__
+        self.logger = ATLogger(logger, {'cn': self.__class__.__name__})
+
+    def some_method(self) -> None:
+        """Get the logger instance."""
+        self.logger.debug("This is a debug message from some_method.")
 
 # Initialize logging for running/debugging this script directly
 if __name__ == "__main__":
     logger = atlogging_setup(AT_APP_NAME)
+    logger.debug(f"Running in direct mode: {__name__}")
+    example_instance = ClassLogger()
+    example_instance.some_method()
     logger.debug(f"Imported module: {__name__}")
     logger.debug(f"{__name__} Logging initialized.")
+    # cwd = os.getcwd(); sys.path.append(cwd)
+    # argv = sys.argv; app_full_path = argv[0] if len(argv) >= 1 else "unknown"
+    # # Add the current working directory to the path
+    # print(f"argv: {argv}, len='{len(argv)}'")
+    # print(f"argv[0]: {argv[0]}")
+    # app_full_path = argv[0] if len(argv) >= 1 else "unknown"
+    # cwd = os.getcwd()
+    # sys.path.append(cwd)  # Add the current working directory to the path
+    # print(f"Current working directory: {cwd}")
+    # print(f"App full path: {app_full_path}")
+    # print(f"sys.path: {sys.path}")
 #endregion atlogging_setup()
 #------------------------------------------------------------------------------+
 

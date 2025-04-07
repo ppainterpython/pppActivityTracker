@@ -23,7 +23,7 @@ and signal event callback method.
 '''
 import logging
 from atconstants import *
-from at_utilities.at_logging import atlogging_setup
+from at_logging.at_logging import atlogging_setup
 import at_utilities.at_utils as atu
 #------------------------------------------------------------------------------+
 #region atlogging_setup()
