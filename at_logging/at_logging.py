@@ -11,7 +11,7 @@ console and file handlers either under actual operation, pytext or single file
 debugging. This is important to avoid duplicate log messages in the output.
 '''
 #------------------------------------------------------------------------------+
-import logging, logging.config, sys, json, threading, pathlib
+import logging, logging.config, sys, json, threading, pathlib, logging.handlers
 from atconstants import *
 
 #------------------------------------------------------------------------------+
@@ -86,7 +86,10 @@ def atlogging_setup(logger_name: str = AT_APP_NAME) -> logging.Logger:
             console_handler.setFormatter(formatter)
 
             # Create a file handler
-            file_handler = logging.FileHandler(AT_LOG_FILE, mode="a")  # Append to the log file
+            # file_handler = logging.FileHandler(AT_LOG_FILE, mode="a")  # Append to the log file
+            # file_handler.setLevel(logging.DEBUG)  # Set file log level
+            # file_handler.setFormatter(formatter)
+            file_handler = logging.handlers.RotatingFileHandler(AT_LOG_FILE, mode="a")  # Append to the log file
             file_handler.setLevel(logging.DEBUG)  # Set file log level
             file_handler.setFormatter(formatter)
 

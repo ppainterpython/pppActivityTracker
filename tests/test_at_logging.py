@@ -52,9 +52,12 @@ def test_at_log_config(caplog):
     lc = get_at_log_config(AT_LOG_CONFIG_FILE)
     assert lc is not None, f"failed to load the logging configuration file"
     logger = logging.getLogger(AT_APP_NAME)
+    logger.propagate = True
     assert logger is not None, f"failed to create a logger"
     m1 = f"Test logging function after configuration from JSON file"
     caplog.set_level(logging.DEBUG)
+    logger.info(m1)
+    logger.error(m1)
     logger.debug(m1)
     assert "JSON File" in caplog.text, \
         f"failed to log a message after configuration from JSON file"

@@ -25,7 +25,8 @@
             "level": "DEBUG",
             "formatter": "module_function",
             "filename": "logs/ActivityTracker.log",
-            "maxBytes": 10000,
+            "mode": "a",
+            "maxBytes": 100000,
             "backupCount": 5
         },
         "pytest_capture": {
@@ -35,5 +36,8 @@
             "stream": "ext://sys.stdout"
         }
     },
-    "root": {"level": "DEBUG", "handlers": ["console", "file"]}
+    "root": {
+        "level": "DEBUG", 
+        "handlers": ["console", "file", "pytest_capture"]
+    }
 }

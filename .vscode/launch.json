@@ -5,14 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python Debugger: Current File",
+            "name": "debugpyr: Cur. File",
             "type": "debugpy",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal"
         },
         {
-            "name": "Python Debugger: Package Directory",
+            "name": "debugpy: Package Dir.",
             "type": "debugpy",
             "request": "launch",
             "program": "${file}", 
